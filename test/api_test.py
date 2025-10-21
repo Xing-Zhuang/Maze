@@ -141,7 +141,11 @@ def get_workflow_status(workflow_id):
         print(f"Received: {message}")
 
     def on_error(ws, error):
-        print(f"Error: {error}")
+        error_code = int.from_bytes(error.data, 'big')
+        if error_code == 1000:
+            return #1000表示正常关闭
+        else:
+            print("Error:", error)
 
     def on_close(ws, close_status_code, close_msg):
         print("Connection closed")

@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import uvicorn
 from typing import Optional, Dict, Any,List
 import uuid
@@ -7,7 +7,6 @@ from fastapi import FastAPI, Request
 import uuid
 import multiprocessing as mp
 from typing import Any, Dict
-from fastapi import FastAPI, WebSocket
 from maze.core.path.path import MaPath
 import signal
 
@@ -134,14 +133,22 @@ async def run_workflow(req:Request):
 描述：前端接收到/run_workflow请求后，立即发送该请求，实时获取工作流运行结果
 
 请求参数：工作流ID
-响应参数：通过SSE机制实时返回各个任务的运行结果
+响应参数：通过websocket机制实时返回各个任务的运行结果
 '''
 @app.websocket("/get_workflow_res/{workflow_id}")
 async def get_workflow_res(websocket: WebSocket, workflow_id: str):
-    await websocket.accept()
-    await mapath.get_workflow_res(workflow_id,websocket)
-    await websocket.close()
-   
+    try:
+        await websocket.accept()
+        await mapath.get_workflow_res(workflow_id,websocket)
+        await websocket.close()
+    except WebSocketDisconnect:
+        print(f"{workflow_id} websocket disconnect normally")
+    except Exception as e:
+        print(f"{workflow_id} websocket disconnect : {e}")
+    finally:
+        pass
+        #print(f"客户端 {client_id} 断开")
+
 if __name__ == "__main__":
     mapath.start()
     uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=True)
