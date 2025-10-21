@@ -1,10 +1,5 @@
-from email import message
-from math import pi
-from re import S
-import resource
+from maze.core.scheduler.resource import SelectedNode
 from typing import Any,List
-from unittest import result
-
 import ray
 import time
 import zmq
@@ -12,12 +7,10 @@ import threading
 import queue
 import json
 import subprocess
-
 import os
-import sys
 from maze.core.scheduler.resource import ResourceManager
 from maze.core.scheduler.runtime import RuntimeManager,TaskRuntime
-from maze.core.scheduler.runner import remote_task_runner
+
 
 def scheduler_process(port1:int,port2:int,strategy:str):
     if strategy == "FCFS":
@@ -168,22 +161,22 @@ class FCFSScheduler(Scheduler):
             assert(self.cur_ready_task is not None)   
 
             #1.获取调度节点
-            choosed_node_info = self.resource_manager.choose_node(task_need_resources=self.cur_ready_task.resources) #choosed_node = {"node_id":"node_id","gpu_id":"gpu_id"}
-            if choosed_node_info:  
+            selected_node: SelectedNode | None = self.resource_manager.select_node(task_need_resources=self.cur_ready_task.resources) #choosed_node = {"node_id":"node_id","gpu_id":"gpu_id"}
+            if selected_node:  
                 #print(f"任务执行")
                 #print(self.cur_ready_task)
 
                 #2.运行任务
-                self.workflow_manager.run_task(self.cur_ready_task,choosed_node_info)
+                self.workflow_manager.run_task(self.cur_ready_task,selected_node)
 
                 #3.推送更新任务状态
                 message = {
                     "type":"start_task",
                     "workflow_id":self.cur_ready_task.workflow_id,
                     "task_id":self.cur_ready_task.task_id,
-                    "node_ip":choosed_node_info.get("node_ip"),
-                    "node_id":choosed_node_info.get("node_id"),
-                    "gpu_id":choosed_node_info.get("gpu_id"),
+                    "node_ip":selected_node.node_ip,
+                    "node_id":selected_node.node_id,
+                    "gpu_id":selected_node.gpu_id,
                 }
                 serialized_message = json.dumps(message).encode('utf-8')
                 socket_to_main_monitor.send(serialized_message)

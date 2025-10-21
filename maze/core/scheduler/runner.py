@@ -2,7 +2,11 @@ import ray
 import ast
 
 @ray.remote
-def remote_task_runner(code_str:str,task_input_data:dict):
+def remote_task_runner(code_str:str,task_input_data:dict,cuda_visible_devices=None):
+    if cuda_visible_devices:
+        import os
+        os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
+        
     runner = Runner(code_str,task_input_data)
     output = runner.run()
     return output

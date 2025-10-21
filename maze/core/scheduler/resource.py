@@ -1,12 +1,11 @@
 from platform import node
 from typing import Any,List
-
-
 from maze.core.scheduler.runtime import TaskRuntime
 import ray
 import subprocess
 import threading
-
+from maze.core.scheduler.runtime import SelectedNode
+         
 
 class ResourceManager():
     def __init__(self):
@@ -21,7 +20,7 @@ class ResourceManager():
         self._get_nodes_detail_by_ray()
         self._init_head_node_resource()
 
-    def choose_node(self,task_need_resources:dict):
+    def select_node(self,task_need_resources:dict):
         #{'cpu': 1, 'cpu_mem': 123, 'gpu': 1, 'gpu_mem': 1432}
         with self.lock:
             cpu_need = task_need_resources["cpu"]
@@ -30,39 +29,44 @@ class ResourceManager():
             gpu_mem_need = task_need_resources["gpu_mem"]
             assert(gpu_need <= 1) #暂时只支持单GPU
 
-            choosed_machine = None
+            selected_node = None
             for node_id,node_resource in self.nodes_available_resources.items():
                 if node_resource['cpu'] < cpu_need or node_resource['cpu_mem'] < cpu_mem_need:
                     continue
                 
-                if gpu_need > 0:
+                if gpu_need > 0: #gpu task
                     for gpu_id,gpu_resource in node_resource["gpu_resource"].items():
                         if gpu_resource['gpu_mem'] < gpu_mem_need or gpu_resource['gpu_num'] < gpu_need:
                             continue
                         
+                        
+                        selected_node = SelectedNode()
+                        selected_node.node_id = node_id
+                        selected_node.gpu_id = gpu_id
+
                         #更新资源
                         self.nodes_available_resources[node_id]['cpu'] -= cpu_need
                         self.nodes_available_resources[node_id]['cpu_mem'] -= cpu_mem_need
                         self.nodes_available_resources[node_id]['gpu_resource'][gpu_id]['gpu_mem'] -= gpu_mem_need
                         self.nodes_available_resources[node_id]['gpu_resource'][gpu_id]['gpu_num'] -= gpu_need
+                else: #cpu task
+                    selected_node = SelectedNode()
+                    selected_node.node_id = node_id
 
-                        choosed_machine = {"node_id":node_id, "gpu_id":gpu_id}
-                else:
                     #更新资源
                     self.nodes_available_resources[node_id]['cpu'] -= cpu_need
                     self.nodes_available_resources[node_id]['cpu_mem'] -= cpu_mem_need
         
-                    choosed_machine = {"node_id":node_id}
             
-            if choosed_machine is not None:
-                choosed_machine["node_ip"] = self.nodeid_to_ip[choosed_machine["node_id"]]
+            if selected_node is not None:
+                selected_node.node_ip = self.nodeid_to_ip[selected_node.node_id]
                
-            return choosed_machine
+            return selected_node
 
     def release_resource(self,tasks:List[TaskRuntime]):
         with self.lock:
             for task in tasks:
-                node_id = task.node_id
+                node_id = task.selected_node.node_id
                 resources = task.resources
 
                 cpu = resources["cpu"]
@@ -74,7 +78,7 @@ class ResourceManager():
                 self.nodes_available_resources[node_id]['cpu_mem'] += cpu_mem
                 
                 if gpu > 0:
-                    gpu_id = task.gpu_id
+                    gpu_id = task.selected_node.gpu_id
 
                     self.nodes_available_resources[node_id]['gpu_resource'][gpu_id]['gpu_mem'] += gpu_mem
                     self.nodes_available_resources[node_id]['gpu_resource'][gpu_id]['gpu_num'] += gpu

@@ -209,8 +209,8 @@ task_output = {
 resources = {
     "cpu":1,
     "cpu_mem": 123,
-    "gpu":0,
-    "gpu_mem" : 0
+    "gpu":1,
+    "gpu_mem" : 123
 }
 save_task(workflow_id=workflow_id,task_id=task_id1,code_str=code_str,task_input=task_input,task_output=task_output,resources=resources)
 
@@ -251,8 +251,8 @@ task_output = {
 resources = {
     "cpu":1,
     "cpu_mem": 123,
-    "gpu":0,
-    "gpu_mem" : 0
+    "gpu":0.8,
+    "gpu_mem" : 324
 }
 save_task(workflow_id=workflow_id,task_id=task_id2,code_str=code_str,task_input=task_input,task_output=task_output,resources=resources)
 
