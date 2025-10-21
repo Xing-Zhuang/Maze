@@ -35,6 +35,9 @@ class MaPath:
     def add_task(self,workflow_id:str,task_id:str,task_type:str):
         self.workflows[workflow_id].add_task(task_id,CodeTask(workflow_id,task_id))
 
+    def del_task(self,workflow_id:str,task_id:str):
+        self.workflows[workflow_id].del_task(task_id)
+
     def save_task(self,workflow_id:str,task_id:str,task_input:str,task_output:str,code_str:str,resources:str):
         task = self.workflows[workflow_id].get_task(task_id)
         task.save_task(task_input=task_input, task_output=task_output, code_str = code_str, resources=resources)
