@@ -5,6 +5,7 @@ import time
 import zmq
 import threading
 import queue
+import multiprocessing as mp
 import json
 import subprocess
 import os
@@ -12,14 +13,14 @@ from maze.core.scheduler.resource import ResourceManager
 from maze.core.scheduler.runtime import RuntimeManager,TaskRuntime
 
 
-def scheduler_process(port1:int,port2:int,strategy:str):
+def scheduler_process(port1:int,port2:int,strategy:str,ready_queue:mp.Queue):
     if strategy == "FCFS":
-        scheduler = FCFSScheduler(port1,port2)
+        scheduler = FCFSScheduler(port1,port2,ready_queue)
     else:
         raise NotImplementedError
 
     scheduler.start()
- 
+   
 class Scheduler():
     def _launch_ray_head(self):
         try:
@@ -46,9 +47,10 @@ class FCFSScheduler(Scheduler):
     """
     First come first serve scheduler.
     """
-    def __init__(self, port1:int, port2:int):
+    def __init__(self, port1:int, port2:int, ready_queue:mp.Queue):
         self.port1 = port1
         self.port2 = port2
+        self.ready_queue = ready_queue
         self.task_queue = queue.Queue() #任务队列（receive线程和submit线程之间交互）
         self.workflow_manager = RuntimeManager() # 工作流管理器
         
@@ -204,7 +206,7 @@ class FCFSScheduler(Scheduler):
         self.submit_thread = threading.Thread(target=self._submit_thread,args=(self.port2,)) 
         self.submit_thread.start()
 
-
+        self.ready_queue.put("ready")
         self.receive_thread.join()
         self.monitor_thread.join()
         self.submit_thread.join()

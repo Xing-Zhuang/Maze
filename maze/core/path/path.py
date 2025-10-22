@@ -131,6 +131,9 @@ class MaPath:
                     item = message
                 )
     
+    #def _wait_ray_head_ready(self):
+        
+
     async def get_workflow_res(self,workflow_id:str,websocket:WebSocket):    
         """
         持续获取工作流每个任务的运行结果
@@ -169,8 +172,15 @@ class MaPath:
         self.monitor_thread.start()
 
         #创建scheduler进程
-        self.scheduler_process = mp.Process(target=scheduler_process, args=(port1,port2,self.strategy,))
+        self.ready_queue = mp.Queue()
+        self.scheduler_process = mp.Process(target=scheduler_process, args=(port1,port2,self.strategy,self.ready_queue))
         self.scheduler_process.start()
+        message = self.ready_queue.get()
+        if message == 'ready':
+            pass
+        else:
+            raise Exception('scheduler process error')
+            
         
         
 
