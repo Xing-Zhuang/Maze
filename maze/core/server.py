@@ -1,4 +1,5 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from typing import Optional, Dict, Any,List
 import uuid
@@ -11,6 +12,15 @@ from maze.core.path.path import MaPath
 import signal
 
 app = FastAPI()
+
+# 添加CORS中间件
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 允许所有来源
+    allow_credentials=True,
+    allow_methods=["*"],  # 允许所有HTTP方法
+    allow_headers=["*"],   # 允许所有头部
+)
 
 mapath = MaPath(strategy="FCFS")
   
@@ -47,6 +57,12 @@ async def add_task(req:Request):
     task_type:str = data.get("task_type")    
     task_id: str = str(uuid.uuid4())
     
+    # 添加参数验证
+    if not workflow_id:
+        return {"status": "fail", "message": "workflow_id is required"}
+    if not task_type:
+        return {"status": "fail", "message": "task_type is required"}
+    
     if(task_type == "code"):
         mapath.add_task(workflow_id, task_id, task_type)
     else:
@@ -65,6 +81,13 @@ async def del_task(req:Request):
     data = await req.json()
     workflow_id:str = data.get("workflow_id")
     task_id: str = data.get("task_id")
+    
+    # 添加参数验证
+    if not workflow_id:
+        return {"status": "fail", "message": "workflow_id is required"}
+    if not task_id:
+        return {"status": "fail", "message": "task_id is required"}
+    
     mapath.del_task(workflow_id, task_id)
     return {"status":"success","task_id": task_id}
 
@@ -85,6 +108,12 @@ async def save_task(req:Request):
     task_output = data.get("task_output")
     resources = data.get("resources")
     code_str = data.get("code_str")
+    
+    # 添加参数验证
+    if not workflow_id:
+        return {"status": "fail", "message": "workflow_id is required"}
+    if not task_id:
+        return {"status": "fail", "message": "task_id is required"}
     
     mapath.save_task(workflow_id=workflow_id, 
                      task_id=task_id,
@@ -109,6 +138,15 @@ async def add_edge(req:Request):
     workflow_id = data.get("workflow_id")
     source_task_id = data.get("source_task_id")
     target_task_id = data.get("target_task_id")
+    
+    # 添加参数验证
+    if not workflow_id:
+        return {"status": "fail", "message": "workflow_id is required"}
+    if not source_task_id:
+        return {"status": "fail", "message": "source_task_id is required"}
+    if not target_task_id:
+        return {"status": "fail", "message": "target_task_id is required"}
+    
     mapath.add_edge(workflow_id, source_task_id, target_task_id)
    
     return {"status":"success"}
@@ -120,12 +158,21 @@ async def add_edge(req:Request):
 响应参数：是否删除成功
 '''
 @app.post("/del_edge")
-async def add_edge(req:Request):
+async def del_edge(req:Request):
     data = await req.json()
    
     workflow_id = data.get("workflow_id")
     source_task_id = data.get("source_task_id")
     target_task_id = data.get("target_task_id")
+    
+    # 添加参数验证
+    if not workflow_id:
+        return {"status": "fail", "message": "workflow_id is required"}
+    if not source_task_id:
+        return {"status": "fail", "message": "source_task_id is required"}
+    if not target_task_id:
+        return {"status": "fail", "message": "target_task_id is required"}
+    
     mapath.del_edge(workflow_id, source_task_id, target_task_id)
    
     return {"status":"success"}
@@ -142,6 +189,11 @@ async def add_edge(req:Request):
 async def run_workflow(req:Request):
     data = await req.json()
     workflow_id = data.get("workflow_id")
+    
+    # 添加参数验证
+    if not workflow_id:
+        return {"status": "fail", "message": "workflow_id is required"}
+    
     mapath.run_workflow(workflow_id)
     return {"status":"success"}
 

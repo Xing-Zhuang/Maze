@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maze Workflow Playground</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <div id="app"></div>
+  
+  <!-- 按顺序加载所有脚本 -->
+  <script src="js/services/api.js"></script>
+  <script src="js/services/state.js"></script>
+  <script src="js/components/task-library.js"></script>
+  <script src="js/components/toolbar.js"></script>
+  <script src="js/components/sidebar.js"></script>
+  <script src="js/components/workspace.js"></script>
+  <script src="js/components/property-panel.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
