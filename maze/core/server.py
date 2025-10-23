@@ -53,9 +53,11 @@ async def create_workflow(req:Request):
 @app.post("/add_task")
 async def add_task(req:Request):
     data = await req.json()
+    print(data)
     workflow_id:str = data.get("workflow_id")
     task_type:str = data.get("task_type")    
     task_id: str = str(uuid.uuid4())
+    task_name: str = data.get("task_name")
     
     # 添加参数验证
     if not workflow_id:
@@ -64,11 +66,26 @@ async def add_task(req:Request):
         return {"status": "fail", "message": "task_type is required"}
     
     if(task_type == "code"):
-        mapath.add_task(workflow_id, task_id, task_type)
+        mapath.add_task(workflow_id, task_id, task_type,task_name)
     else:
         return {"status": "fail", "message": "Invalid task_type"}
 
     return {"status":"success","task_id": task_id}
+
+'''
+描述：获取工作流中的所有任务
+请求路径：/get_workflow_tasks/{workflow_id}
+请求参数：工作流ID（路径参数）
+响应参数：任务列表，包含id和name
+'''
+@app.get("/get_workflow_tasks/{workflow_id}")
+async def get_workflow_tasks(workflow_id: str):
+    try:
+        # 调用mapath获取工作流任务
+        tasks = mapath.get_workflow_tasks(workflow_id)
+        return {"status": "success", "tasks": tasks}
+    except Exception as e:
+        return {"status": "fail", "message": str(e)}
 
 '''
 描述：在每个任务方框中有一个“删除任务”按钮，按下后发送该请求，删除该任务
@@ -101,7 +118,7 @@ async def del_task(req:Request):
 @app.post("/save_task")
 async def save_task(req:Request):
     data = await req.json()
-
+    print(data)
     workflow_id = data.get("workflow_id")
     task_id = data.get("task_id")
     task_input = data.get("task_input")
@@ -134,7 +151,7 @@ async def save_task(req:Request):
 @app.post("/add_edge")
 async def add_edge(req:Request):
     data = await req.json()
-   
+    print(data) 
     workflow_id = data.get("workflow_id")
     source_task_id = data.get("source_task_id")
     target_task_id = data.get("target_task_id")
