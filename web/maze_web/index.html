@@ -55,17 +55,19 @@
                 const response = await fetch(componentPath);
                 const html = await response.text();
                 document.getElementById(containerId).innerHTML = html;
-                console.log(`Loaded component: ${componentPath}`);
+                console.log(`✅ Loaded component: ${componentPath}`);
+                return true;
             } catch (error) {
-                console.error(`Error loading component ${componentPath}:`, error);
+                console.error(`❌ Error loading component ${componentPath}:`, error);
+                return false;
             }
         }
 
         // Load all components when DOM is ready
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('DOM loaded, starting component loading...');
-            
-            await Promise.all([
+            console.log('🚀 DOM loaded, starting component loading...');
+
+            const results = await Promise.all([
                 loadComponent('background-container', 'components/background.html'),
                 loadComponent('demo-modal-container', 'components/modal.html'),
                 loadComponent('navigation-container', 'components/navigation.html'),
@@ -74,34 +76,41 @@
                 loadComponent('architecture-container', 'components/architecture.html'),
                 loadComponent('footer-container', 'components/footer.html')
             ]);
-            
-            console.log('All components loaded, initializing JavaScript...');
-            
+
+            const successCount = results.filter(r => r).length;
+            console.log(`📊 Component loading results: ${successCount}/7 components loaded successfully`);
+
+            if (successCount === 0) {
+                console.log('⚠️ No components loaded - this is expected when running without HTTP server');
+            }
+
+            console.log('🔧 Initializing JavaScript...');
+
             // Wait a bit more to ensure DOM is fully updated
             setTimeout(() => {
                 // Re-initialize maze animation with new DOM elements
                 if (window.mazeAnimation) {
                     window.mazeAnimation = null; // Clear old instance
                 }
-                
+
                 // Re-initialize modal with new DOM elements
                 if (window.demoModal) {
                     window.demoModal = null; // Clear old instance
                 }
-                
+
                 // Create new instances
                 try {
                     window.mazeAnimation = new MazeAnimation();
-                    console.log('Maze animation initialized');
+                    console.log('✅ Maze animation initialized');
                 } catch (error) {
-                    console.error('Error initializing maze animation:', error);
+                    console.error('❌ Error initializing maze animation:', error);
                 }
-                
+
                 try {
                     window.demoModal = new DemoModal();
-                    console.log('Modal initialized');
+                    console.log('✅ Modal initialized');
                 } catch (error) {
-                    console.error('Error initializing modal:', error);
+                    console.error('❌ Error initializing modal:', error);
                 }
             }, 200);
         });
