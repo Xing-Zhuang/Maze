@@ -89,10 +89,10 @@ class ResourceManager():
         Show all node resource
         '''
         cur_time = time.time()
-        print( cur_time - self.last_time)
         if cur_time - self.last_time >= self.interval:
             self.last_time = cur_time
-            
+            print( cur_time - self.last_time)
+
             for node_id,node in self.nodes.items():
                 print(node_id,node.available_resources)
 
