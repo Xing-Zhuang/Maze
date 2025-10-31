@@ -1,6 +1,6 @@
 import requests
 from typing import Optional
-from maze.core.client.workflow import MaWorkflow
+from maze.client.maze.workflow import MaWorkflow
 
 
 class MaClient:

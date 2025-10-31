@@ -21,7 +21,7 @@ class LanggraphTaskRuntime():
         self.resources: Dict[str, Any] = resources
 
 class TaskRuntime():
-    def __init__(self,workflow_id:str,task_id:str,task_input:Dict,task_output:Dict,resources:Dict,code_str:str):
+    def __init__(self,workflow_id:str,task_id:str,task_input:Dict,task_output:Dict,resources:Dict,code_str:str=None,code_ser:str=None):
         self.status = "ready" #ready,running,finished
         self.workflow_id: str = workflow_id
         self.task_id: str = task_id
@@ -29,6 +29,7 @@ class TaskRuntime():
         self.task_output: Dict[Any, Any] = task_output
         self.resources: Dict[str, Any] = resources
         self.code_str: str = code_str
+        self.code_ser: str = code_ser  # 添加序列化代码支持
 
         self.object_ref = None
         self.result: None|Dict[Any, Any] = None
@@ -180,14 +181,14 @@ class WorkflowRuntimeManager():
                     num_gpus=task.resources["gpu"],
                     memory=task.resources["cpu_mem"],
                     scheduling_strategy= ray.util.scheduling_strategies.NodeAffinitySchedulingStrategy(node_id=node.node_id, soft=False)
-                ).remote(code_str=task.code_str,task_input_data=task_input_data,cuda_visible_devices=str(node.gpu_id))     
+                ).remote(code_str=task.code_str, code_ser=task.code_ser, task_input_data=task_input_data, cuda_visible_devices=str(node.gpu_id))     
             #cpu task
             else: 
                 result_ref = remote_task_runner.options(
                     num_cpus=task.resources["cpu"],
                     memory=task.resources["cpu_mem"],
                     scheduling_strategy= ray.util.scheduling_strategies.NodeAffinitySchedulingStrategy(node_id=node.node_id, soft=False)
-                ).remote(code_str=task.code_str,task_input_data=task_input_data,cuda_visible_devices=None)
+                ).remote(code_str=task.code_str, code_ser=task.code_ser, task_input_data=task_input_data, cuda_visible_devices=None)
             
             
             self.workflows[task.workflow_id].add_runtime_info(task.task_id,result_ref,node)

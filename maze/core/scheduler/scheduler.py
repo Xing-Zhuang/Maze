@@ -78,7 +78,8 @@ class Scheduler():
                                                                 task_input=message_data['task_input'],
                                                                 task_output=message_data['task_output'],
                                                                 resources=message_data['resources'],
-                                                                code_str=message_data['code_str']
+                                                                code_str=message_data.get('code_str'),
+                                                                code_ser=message_data.get('code_ser')
                                                                 )  
                         self.task_queue.put(item=task_runtime)
                     elif(message_data["task_type"]==TaskType.LANGGRAPH.value):

@@ -5,14 +5,29 @@ import base64
 import cloudpickle
 
 @ray.remote(max_retries=0)
-def remote_task_runner(code_str:str,task_input_data:dict,cuda_visible_devices:str|None=None):
+def remote_task_runner(code_str:str=None, code_ser:str=None, task_input_data:dict=None, cuda_visible_devices:str|None=None):
+    """
+    远程任务执行器，支持两种方式：
+    1. code_str: 字符串代码（旧方式，要求 import 在函数内部）
+    2. code_ser: 序列化的函数（新方式，支持外部 import）
+    """
     if cuda_visible_devices:
         import os
         os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
-        
-    runner = Runner(code_str,task_input_data)
-    output = runner.run()
-    return output
+    
+    # 优先使用 code_ser（新方式）
+    if code_ser is not None:
+        # 使用 cloudpickle 反序列化函数并执行
+        func = cloudpickle.loads(base64.b64decode(code_ser))
+        output = func(task_input_data)
+        return output
+    # 兼容旧方式
+    elif code_str is not None:
+        runner = Runner(code_str, task_input_data)
+        output = runner.run()
+        return output
+    else:
+        raise ValueError("必须提供 code_str 或 code_ser")
 
 @ray.remote(max_retries=0)
 def remote_lgraph_task_runner(code_ser:str,args:str,kwargs:str,cuda_visible_devices:str|None=None):

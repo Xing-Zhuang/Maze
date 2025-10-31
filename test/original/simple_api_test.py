@@ -1,6 +1,5 @@
-from maze.core.client import MaClient
-from maze.core.client.task import simpleTask
-
+from maze.client.maze.client import MaClient
+from maze.client.maze.builtin import simpleTask
 client = MaClient()
 workflow = client.create_workflow()
 task1 = workflow.add_task(
@@ -17,13 +16,14 @@ workflow.run()
 
 for message in workflow.get_results():
     msg_type = message.get("type")
+    msg_data = message.get("data", {})
     
     if msg_type == "start_task":
-        print(f"▶ 任务开始: {message.get('task_id')}")
+        print(f"▶ 任务开始: {msg_data.get('task_id')}")
         
     elif msg_type == "finish_task":
-        print(f"✓ 任务完成: {message.get('task_id')}")
-        print(f"  结果: {message.get('result')}\n")
+        print(f"✓ 任务完成: {msg_data.get('task_id')}")
+        print(f"  结果: {msg_data.get('result')}\n")
         
     elif msg_type == "finish_workflow":
         print("=" * 60)

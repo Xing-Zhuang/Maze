@@ -4,7 +4,11 @@
 这些任务使用 @task 装饰器定义，包含了输入输出和资源需求的元数据
 """
 
-from maze.core.client.decorator import task
+from datetime import datetime
+from maze.client.maze.decorator import task
+
+
+
 
 
 @task(
@@ -13,8 +17,6 @@ from maze.core.client.decorator import task
     resources={"cpu": 1, "cpu_mem": 123, "gpu": 1, "gpu_mem": 123}
 )
 def task1(params):
-    from datetime import datetime
-    import time
     
     task_input = params.get("task1_input")
     
@@ -42,8 +44,7 @@ def task2(params):
     输出:
         task2_output: 输入字符串 + 时间戳 + "===="
     """
-    from datetime import datetime
-    import time 
+
     
     task_input = params.get("task2_input")
     
