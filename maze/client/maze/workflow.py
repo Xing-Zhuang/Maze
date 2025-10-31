@@ -1,8 +1,8 @@
 import requests
 import websocket
 from typing import Optional, Iterator, Dict, Any, List, Callable, Union
-from maze.core.client.models import MaTask, TaskOutput
-from maze.core.client.decorator import get_task_metadata
+from maze.client.maze.models import MaTask, TaskOutput
+from maze.client.maze.decorator import get_task_metadata
 
 
 class MaWorkflow:
@@ -124,6 +124,7 @@ class MaWorkflow:
             'workflow_id': self.workflow_id,
             'task_id': task_id,
             'code_str': metadata.code_str,
+            'code_ser': metadata.code_ser,  # 添加序列化的函数
             'task_input': task_input,
             'task_output': task_output,
             'resources': metadata.resources,

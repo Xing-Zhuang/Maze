@@ -3,6 +3,8 @@
 """
 
 import inspect
+import cloudpickle
+import base64
 from typing import Dict, List, Any, Callable
 from dataclasses import dataclass
 
@@ -13,6 +15,7 @@ class TaskMetadata:
     func: Callable
     func_name: str
     code_str: str
+    code_ser: str  # 序列化的函数（使用 cloudpickle）
     inputs: List[str]
     outputs: List[str]
     resources: Dict[str, Any]
@@ -57,6 +60,9 @@ def task(inputs: List[str],
         func_lines = source_lines[func_start_idx:]
         code_str = ''.join(func_lines)
         
+        # 使用 cloudpickle 序列化整个函数（包括外部 import 和依赖）
+        code_ser = base64.b64encode(cloudpickle.dumps(func)).decode('utf-8')
+        
         # 默认资源配置
         if resources is None:
             resources_config = {"cpu": 1, "cpu_mem": 128, "gpu": 0, "gpu_mem": 0}
@@ -75,6 +81,7 @@ def task(inputs: List[str],
             func=func,
             func_name=func.__name__,
             code_str=code_str,
+            code_ser=code_ser,
             inputs=inputs,
             outputs=outputs,
             resources=resources_config,
