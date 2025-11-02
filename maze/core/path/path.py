@@ -70,7 +70,6 @@ class MaPath:
         Start a workflow.
         """
         workflow = self.workflows[workflow_id]
-        workflow.check()
         self.async_que[workflow_id] = asyncio.Queue()
         start_task:List = workflow.get_start_task()
         
