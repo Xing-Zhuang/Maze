@@ -1,7 +1,6 @@
 from ast import arg
 import uuid
 import signal
-from Maze.maze.client.maze import workflow
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, Dict, Any,List
 from maze.core.path.path import MaPath
