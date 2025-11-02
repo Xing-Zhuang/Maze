@@ -307,8 +307,6 @@ save_task(workflow_id=workflow_id,task_id=task_id2,code_str=code_str,task_input=
 
 #4.添加边
 add_edge(workflow_id=workflow_id,source_task_id=task_id1,target_task_id=task_id2)
-# del_edge(workflow_id=workflow_id,source_task_id=task_id1,target_task_id=task_id2)
-# add_edge(workflow_id=workflow_id,source_task_id=task_id1,target_task_id=task_id2)
 
 #5.执行任务
 run_workflow(workflow_id=workflow_id)
