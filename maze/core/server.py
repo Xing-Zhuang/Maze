@@ -1,6 +1,7 @@
 from ast import arg
 import uuid
 import signal
+from Maze.maze.client.maze import workflow
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, Dict, Any,List
 from maze.core.path.path import MaPath
@@ -129,6 +130,38 @@ async def save_task(req:Request):
             if code_ser is None and code_str is None:
                 raise HTTPException(status_code=500, detail="code_str or code_ser is required")
             task.save_task(task_input=task_input, task_output=task_output, code_str = code_str, code_ser = code_ser, resources=resources)
+        else:
+            raise HTTPException(status_code=500, detail="Invalid task_type")
+  
+        return {"status":"success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/save_task_and_add_edge")
+async def save_task(req:Request):
+    try:
+        data = await req.json()
+        workflow_id = data["workflow_id"]
+        task_id = data["task_id"]
+        resources = data["resources"]
+
+        workflow = mapath.get_workflow(workflow_id)
+        task = workflow.get_task(task_id)
+        if(task.task_type == TaskType.CODE.value):    
+            task_input = data["task_input"]
+            task_output = data["task_output"]
+            code_str = data.get("code_str")
+            code_ser = data.get("code_ser")
+            if code_ser is None and code_str is None:
+                raise HTTPException(status_code=500, detail="code_str or code_ser is required")
+            task.save_task(task_input=task_input, task_output=task_output, code_str = code_str, code_ser = code_ser, resources=resources)
+
+            for _,input in task_input.items():
+                if(input['input_schema']=='from_task'):
+                    source_task_id = input['value'].split('.')[0]
+                    target_task_id = task_id
+                    workflow.add_edge(source_task_id, target_task_id)
         else:
             raise HTTPException(status_code=500, detail="Invalid task_type")
   

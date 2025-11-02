@@ -67,7 +67,10 @@ class Workflow:
         if source_task_id not in self.graph or target_task_id not in self.graph:
             raise ValueError("Both tasks must exist in the workflow before adding an edge.")
         self.graph.add_edge(source_task_id, target_task_id)
-
+        if not nx.is_directed_acyclic_graph(self.graph):
+            self.remove_edge(source_task_id, target_task_id)
+            raise ValueError("The edge would make the workflow contain a cycle.")
+       
     def del_edge(self, source_task_id: str, target_task_id: str) -> None:
         """
         Delete a edge from workflow
