@@ -273,9 +273,10 @@ async def run_langgraph_task(req:Request):
         args = data["args"]
         kwargs = data["kwargs"]
         result = await mapath.run_langgraph_task(workflow_id=workflow_id,task_id=task_id,args=args,kwargs=kwargs)
+        print("=======")
+        print(result)
         return {"status": "success","result": result}
     except Exception as e:
-        print(e)
         raise HTTPException(status_code=500, detail=str(e))
          
 

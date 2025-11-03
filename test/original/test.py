@@ -1,5 +1,5 @@
 import unittest
-import requests
+import requests  pytest
 import websocket
 import requests
 import websocket

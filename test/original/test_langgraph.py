@@ -17,27 +17,25 @@ class GraphState(TypedDict):
 @client.task
 def cpu_tool_1(state: GraphState) -> GraphState:
     result = "CPU Tool 1 done"
-    for i in range(1000000):
+    for i in range(50000000):
         pass
-    print("CPU Tool 1 done")
     return {"result1":result}
 
+@client.task
 def cpu_tool_2(state: GraphState) -> GraphState:
     result = "CPU Tool 2 done"
-    for i in range(1000000):
+    for i in range(50000000):
         pass
-    print("CPU Tool 2 done")
     return {"result2":result}
 
+@client.task
 def cpu_tool_3(state: GraphState) -> GraphState:
     result = "CPU Tool 3 done"
-    for i in range(1000000):
+    for i in range(50000000):
         pass
-    print("CPU Tool 3 done")
     return {"result3":result}
 
 def start_node(state: GraphState) -> GraphState:
-    print("Start node executed")
     return state
 
 builder = StateGraph(GraphState)
@@ -63,4 +61,7 @@ graph = builder.compile()
 
 initial_state: dict[str, list[Any]] = {"results": []}
 result = graph.invoke(initial_state)
-print("Final state:", result)
+assert(result['result1']=='CPU Tool 1 done')
+assert(result['result2']=='CPU Tool 2 done')
+assert(result['result3']=='CPU Tool 3 done')
+ 
