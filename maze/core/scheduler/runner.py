@@ -39,8 +39,6 @@ def remote_lgraph_task_runner(code_ser:str,args:str,kwargs:str,cuda_visible_devi
     args = cloudpickle.loads(base64.b64decode(args))
     kwargs = cloudpickle.loads(base64.b64decode(kwargs))
 
-    print(args)
-    print(kwargs)
     output = func(*args, **kwargs)
     return output
  

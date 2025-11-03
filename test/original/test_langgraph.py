@@ -3,6 +3,7 @@ from typing import TypedDict, List
 from langgraph.graph import StateGraph, START, END
 from typing import Any
 from maze import LanggraphClient
+import threading
 
 MAZE_SERVER_ADDR = "localhost:8000"
 
@@ -13,20 +14,25 @@ class GraphState(TypedDict):
     result2: str
     result3: str
     
-@client.task(resources={"cpu": 1,"gpu": 1,"cpu_mem": 31,"gpu_mem": 12})
+@client.task
 def cpu_tool_1(state: GraphState) -> GraphState:
     result = "CPU Tool 1 done"
-    import time
-    time.sleep(5)
+    for i in range(1000000):
+        pass
+    print("CPU Tool 1 done")
     return {"result1":result}
 
 def cpu_tool_2(state: GraphState) -> GraphState:
     result = "CPU Tool 2 done"
+    for i in range(1000000):
+        pass
     print("CPU Tool 2 done")
     return {"result2":result}
 
 def cpu_tool_3(state: GraphState) -> GraphState:
     result = "CPU Tool 3 done"
+    for i in range(1000000):
+        pass
     print("CPU Tool 3 done")
     return {"result3":result}
 

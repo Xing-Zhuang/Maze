@@ -160,7 +160,7 @@ class WorkflowRuntimeManager():
                     num_cpus=task.resources["cpu"],
                     memory=task.resources["cpu_mem"],
                     scheduling_strategy= ray.util.scheduling_strategies.NodeAffinitySchedulingStrategy(node_id=node.node_id, soft=False)
-                ).remote(code_ser=task.code_ser,task_data=task.args,kwargs=task.kwargs,cuda_visible_devices=None)
+                ).remote(code_ser=task.code_ser,args=task.args,kwargs=task.kwargs,cuda_visible_devices=None)
             
             
             self.workflows[task.workflow_id].add_runtime_info(task.task_id,result_ref,node)
