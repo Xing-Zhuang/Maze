@@ -198,6 +198,11 @@ class MaPath:
             if data["type"]=="finish_task":
                 count += 1
                 if(count == total_task_num):
+                    # 发送工作流完成消息
+                    finish_message = {"type":"finish_workflow","data":{"workflow_id":workflow_id}}
+                    await websocket.send_json(finish_message)
+                    
+                    # 发送清理消息
                     message = {"type":"clear_workflow","data":{"workflow_id":workflow_id}}
                     serialized: bytes = json.dumps(message).encode('utf-8')
                     self.socket_to_receive.send(serialized)
