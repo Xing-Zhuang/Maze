@@ -161,7 +161,7 @@ class Scheduler():
             with self.lock:
                 self.resource_manager.check_dead_node()
 
-                self.resource_manager.show_all_node_resource()
+                #self.resource_manager.show_all_node_resource()
                
 
                 running_task_refs:List = self.workflow_manager.get_running_task_refs()
