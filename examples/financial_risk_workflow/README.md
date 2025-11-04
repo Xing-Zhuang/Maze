@@ -1,4 +1,4 @@
-# 金融风险评估工作流 - LangGraph 示例
+# 金融风险评估工作流 - LanggraphClient
 
 ## 🎯 整体业务场景
 
