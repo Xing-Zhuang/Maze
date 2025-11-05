@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="css/hero.css">
     <link rel="stylesheet" href="css/features.css">
     <link rel="stylesheet" href="css/architecture.css">
+    <link rel="stylesheet" href="css/examples.css">
     <link rel="stylesheet" href="css/modal.css">
     <link rel="stylesheet" href="css/footer.css">
 </head>
@@ -37,6 +38,9 @@
     <!-- Architecture Section -->
     <div id="architecture-container"></div>
 
+    <!-- Examples Section -->
+    <div id="examples-container"></div>
+
     <!-- Footer -->
     <div id="footer-container"></div>
 
@@ -45,6 +49,7 @@
     <script src="js/site-config.js"></script>
     <script src="js/modal.js"></script>
     <script src="js/maze.js"></script>
+    <script src="js/typewriter.js"></script>
     <script src="js/main.js"></script>
 
     <!-- Component Loader -->
@@ -74,11 +79,12 @@
                 loadComponent('hero-container', 'components/hero.html'),
                 loadComponent('features-container', 'components/features.html'),
                 loadComponent('architecture-container', 'components/architecture.html'),
+                loadComponent('examples-container', 'components/examples.html'),
                 loadComponent('footer-container', 'components/footer.html')
             ]);
 
             const successCount = results.filter(r => r).length;
-            console.log(`📊 Component loading results: ${successCount}/7 components loaded successfully`);
+            console.log(`📊 Component loading results: ${successCount}/8 components loaded successfully`);
 
             if (successCount === 0) {
                 console.log('⚠️ No components loaded - this is expected when running without HTTP server');
@@ -111,6 +117,16 @@
                     console.log('✅ Modal initialized');
                 } catch (error) {
                     console.error('❌ Error initializing modal:', error);
+                }
+
+                // Initialize typewriter animation for main page
+                try {
+                    if (window.initMainTypewriter) {
+                        window.initMainTypewriter();
+                        console.log('✅ Main typewriter initialized');
+                    }
+                } catch (error) {
+                    console.error('❌ Error initializing main typewriter:', error);
                 }
             }, 200);
         });

@@ -211,11 +211,33 @@ if __name__ == "__main__":
     
     print(f"Final Output: {task2_result.outputs['task2_output']}");`;
 
-// Global typewriter instance
+// Global typewriter instances
 let globalTypewriter = null;
+let mainTypewriter = null;
 
 /**
- * Initialize typewriter when DOM is ready
+ * Initialize typewriter for main page
+ */
+function initMainTypewriter() {
+    console.log('🎬 Initializing main page typewriter animation...');
+    
+    // Wait a bit to ensure the examples component is loaded
+    setTimeout(() => {
+        const element = document.getElementById('typewriter-code-main');
+        if (element) {
+            mainTypewriter = new TypewriterAnimation();
+            mainTypewriter.init('main', SIMPLE_WORKFLOW_CODE, 35);
+            console.log('✅ Main typewriter animation initialized');
+        } else {
+            console.warn('⚠️ Main typewriter element not found, retrying...');
+            // Retry after a longer delay
+            setTimeout(initMainTypewriter, 1000);
+        }
+    }, 300);
+}
+
+/**
+ * Initialize typewriter when DOM is ready (for cookbook page)
  */
 function initTypewriter() {
     console.log('🎬 Initializing typewriter animation...');
@@ -237,11 +259,20 @@ function initTypewriter() {
 
 /**
  * Replay typewriter animation
- * @param {number} index - The typewriter index
+ * @param {string|number} index - The typewriter index (can be 'main' for main page)
  */
 function replayTypewriter(index) {
+    // For main page typewriter
+    if (index === undefined || index === 'main') {
+        if (mainTypewriter) {
+            mainTypewriter.replay('main');
+            return;
+        }
+    }
+    
+    // For cookbook page typewriter
     if (globalTypewriter) {
-        globalTypewriter.replay(index);
+        globalTypewriter.replay(index || 0);
     } else {
         console.error('Typewriter not initialized');
     }
@@ -277,6 +308,7 @@ if (document.readyState === 'loading') {
 
 // Also expose for manual initialization
 window.initTypewriter = initTypewriter;
+window.initMainTypewriter = initMainTypewriter;
 window.replayTypewriter = replayTypewriter;
 window.toggleCode = toggleCode;
 
