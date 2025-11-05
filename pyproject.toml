@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "maze-agent"
 version = "1.0.0"
 description = "Distributed Agent workflow system"
-#authors = [{ name = "", email = "" }]
+
 requires-python = ">=3.10"
 
 dependencies = [
@@ -21,11 +21,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
-    "pytest>=7.4.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.1.0",
-]
 dev = [
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
@@ -33,7 +28,7 @@ dev = [
 ]
 
 [project.scripts]
-mazea = "maze.cli.cli:main"
+maze = "maze.cli.cli:main"
 
 [tool.setuptools.package-dir]
 "" = "."

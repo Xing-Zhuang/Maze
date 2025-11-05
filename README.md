@@ -3,7 +3,7 @@
 [**Documentation**](https://maze-doc-new.readthedocs.io/en/latest/)
 <p align="center">
   <img
-    src="./assets/imgs/maze-logo-icon.svg"
+    src="./assets/imgs/maze_logo.jpg"
     alt="AgentScope Logo"
     width="200"
   />
@@ -44,11 +44,11 @@
    Launch Maze Head.
 
    ```
-   maze start --head --port HEAD_PORT
+   mazea start --head --port HEAD_PORT
    ```
    If there are multiple machines, you can start multiple Maze workers.
    ```
-   maze start --worker --addr HEAD_IP:HEAD_PORT
+   mazea start --worker --addr HEAD_IP:HEAD_PORT
    ```
 ## 3. Example
 
