@@ -200,14 +200,9 @@ if __name__ == "__main__":
         inputs={"task2_input": task1_result.outputs["task1_output"]}
     )
     
-    # Execute workflow
+    # Execute workflow and show results
     workflow.run()
-    
-    # Get results
-    for message in workflow.get_results(verbose=True):
-        if message.get("type") == "finish_workflow":
-            print("✅ Workflow completed!")
-            break
+    workflow.show_results()
     
     print(f"Final Output: {task2_result.outputs['task2_output']}");`;
 

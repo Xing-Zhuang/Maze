@@ -1,5 +1,5 @@
 """
-Maze客户端的数据模型类
+Data model classes for Maze client
 """
 
 import requests
@@ -8,9 +8,9 @@ from typing import Dict, Any, Optional
 
 class TaskOutput:
     """
-    任务输出引用，用于在任务间传递数据
+    Task output reference for passing data between tasks
     
-    示例:
+    Example:
         task1 = workflow.add_task(func1, inputs={"in": "value"})
         task2 = workflow.add_task(func2, inputs={"in": task1.outputs["out"]})
     """
@@ -20,7 +20,7 @@ class TaskOutput:
         self.output_key = output_key
         
     def to_reference_string(self) -> str:
-        """转换为服务器能识别的引用字符串格式"""
+        """Convert to server-recognizable reference string format"""
         return f"{self.task_id}.output.{self.output_key}"
     
     def __repr__(self) -> str:
@@ -29,9 +29,9 @@ class TaskOutput:
 
 class TaskOutputs:
     """
-    任务输出集合，支持字典式访问
+    Task output collection with dictionary-style access
     
-    示例:
+    Example:
         outputs = task.outputs
         output_ref = outputs["output_key"]
     """
@@ -42,7 +42,7 @@ class TaskOutputs:
     
     def __getitem__(self, key: str) -> TaskOutput:
         if key not in self._outputs:
-            raise KeyError(f"任务没有名为 '{key}' 的输出参数")
+            raise KeyError(f"Task does not have output parameter named '{key}'")
         return self._outputs[key]
     
     def keys(self):
@@ -54,9 +54,9 @@ class TaskOutputs:
 
 class MaTask:
     """
-    Maze任务对象，用于配置和管理单个任务
+    Maze task object for configuring and managing individual tasks
     
-    示例:
+    Example:
         task = workflow.add_task(task_func, inputs={"input_key": "value"})
         next_task = workflow.add_task(next_func, inputs={"in": task.outputs["out"]})
     """
@@ -68,21 +68,21 @@ class MaTask:
                  task_name: Optional[str] = None,
                  output_keys: Optional[list] = None):
         """
-        初始化任务对象
+        Initialize task object
         
         Args:
-            task_id: 任务ID
-            workflow_id: 所属工作流ID
-            server_url: 服务器地址
-            task_name: 任务名称（可选）
-            output_keys: 输出参数名列表（可选）
+            task_id: Task ID
+            workflow_id: Workflow ID this task belongs to
+            server_url: Server address
+            task_name: Task name (optional)
+            output_keys: List of output parameter names (optional)
         """
         self.task_id = task_id
         self.workflow_id = workflow_id
         self.server_url = server_url.rstrip('/')
         self.task_name = task_name
         
-        # 创建输出引用对象
+        # Create output reference object
         if output_keys:
             self.outputs = TaskOutputs(task_id, output_keys)
         else:
@@ -94,16 +94,16 @@ class MaTask:
              task_output: Dict[str, Any],
              resources: Dict[str, Any]) -> None:
         """
-        保存任务配置（输入、输出、代码、资源需求）
+        Save task configuration (inputs, outputs, code, resource requirements)
         
         Args:
-            code_str: 任务代码字符串
-            task_input: 任务输入参数配置
-            task_output: 任务输出参数配置
-            resources: 资源需求配置
+            code_str: Task code string
+            task_input: Task input parameter configuration
+            task_output: Task output parameter configuration
+            resources: Resource requirements configuration
             
         Raises:
-            Exception: 如果保存失败
+            Exception: If save fails
         """
         url = f"{self.server_url}/save_task"
         data = {
@@ -120,16 +120,16 @@ class MaTask:
         if response.status_code == 200:
             result = response.json()
             if result.get("status") != "success":
-                raise Exception(f"保存任务失败: {result.get('message', 'Unknown error')}")
+                raise Exception(f"Failed to save task: {result.get('message', 'Unknown error')}")
         else:
-            raise Exception(f"请求失败，状态码：{response.status_code}, 响应：{response.text}")
+            raise Exception(f"Request failed, status code: {response.status_code}, response: {response.text}")
     
     def delete(self) -> None:
         """
-        删除任务
+        Delete task
         
         Raises:
-            Exception: 如果删除失败
+            Exception: If deletion fails
         """
         url = f"{self.server_url}/del_task"
         data = {
@@ -142,9 +142,9 @@ class MaTask:
         if response.status_code == 200:
             result = response.json()
             if result.get("status") != "success":
-                raise Exception(f"删除任务失败: {result.get('message', 'Unknown error')}")
+                raise Exception(f"Failed to delete task: {result.get('message', 'Unknown error')}")
         else:
-            raise Exception(f"请求失败，状态码：{response.status_code}, 响应：{response.text}")
+            raise Exception(f"Request failed, status code: {response.status_code}, response: {response.text}")
     
     def __repr__(self) -> str:
         name = f", name='{self.task_name}'" if self.task_name else ""

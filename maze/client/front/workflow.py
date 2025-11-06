@@ -10,9 +10,9 @@ from maze.client.front.file_utils import FileInput, is_file_type
 
 class MaWorkflow:
     """
-    Maze工作流对象，用于管理任务和执行流程
+    Maze workflow object for managing tasks and execution flow
     
-    示例:
+    Example:
         workflow = client.create_workflow()
         task1 = workflow.add_task(func1, inputs={"in": "value"})
         task2 = workflow.add_task(func2, inputs={"in": task1.outputs["out"]})
@@ -24,11 +24,11 @@ class MaWorkflow:
     
     def __init__(self, workflow_id: str, server_url: str):
         """
-        初始化工作流对象
+        Initialize workflow object
         
         Args:
-            workflow_id: 工作流ID
-            server_url: 服务器地址
+            workflow_id: Workflow ID
+            server_url: Server address
         """
         self.workflow_id = workflow_id
         self.server_url = server_url.rstrip('/')
@@ -39,47 +39,47 @@ class MaWorkflow:
                  inputs: Dict[str, Any] = None,
                  task_type: str = "code", 
                  task_name: Optional[str] = None,
-                 # 兼容旧API
+                 # Legacy API compatibility
                  code_str: str = None,
                  task_input: Dict[str, Any] = None,
                  task_output: Dict[str, Any] = None,
                  resources: Dict[str, Any] = None) -> MaTask:
         """
-        添加任务到工作流（支持装饰器函数或手动配置）
+        Add task to workflow (supports decorator function or manual configuration)
         
-        新API（推荐）:
+        New API (recommended):
             task1 = workflow.add_task(
                 task_func=my_decorated_func,
                 inputs={"input_key": "value"}
             )
             
-        或更简洁：
+        Or more concise:
             task1 = workflow.add_task(my_decorated_func, inputs={"input_key": "value"})
             
-        引用其他任务的输出：
+        Reference other task outputs:
             task2 = workflow.add_task(
                 func2, 
                 inputs={"input_key": task1.outputs["output_key"]}
             )
         
-        旧API（仍然支持）:
-            task = workflow.add_task(task_type="code", task_name="任务")
+        Legacy API (still supported):
+            task = workflow.add_task(task_type="code", task_name="task")
             task.save(code_str, task_input, task_output, resources)
         
         Args:
-            task_func: 使用@task装饰的函数
-            inputs: 输入参数字典 {参数名: 值或TaskOutput}
-            task_type: 任务类型，默认"code"
-            task_name: 任务名称
+            task_func: Function decorated with @task
+            inputs: Input parameter dictionary {param_name: value or TaskOutput}
+            task_type: Task type, defaults to "code"
+            task_name: Task name
             
         Returns:
-            MaTask: 创建的任务对象
+            MaTask: Created task object
         """
-        # 新API：使用装饰器函数
+        # New API: Use decorator function
         if task_func is not None:
             return self._add_task_from_decorator(task_func, inputs, task_name)
         
-        # 旧API：手动配置（为了兼容性保留）
+        # Legacy API: Manual configuration (kept for compatibility)
         return self._add_task_manual(task_type, task_name)
     
     def _add_task_from_decorator(self, 
@@ -87,16 +87,16 @@ class MaWorkflow:
                                   inputs: Dict[str, Any],
                                   task_name: Optional[str] = None) -> MaTask:
         """
-        从装饰器函数创建任务（内部方法）
+        Create task from decorator function (internal method)
         """
-        # 获取函数的元数据
+        # Get function metadata
         metadata = get_task_metadata(task_func)
         
-        # 使用函数名作为任务名（如果没有指定）
+        # Use function name as task name (if not specified)
         if task_name is None:
             task_name = metadata.func_name
         
-        # 1. 创建任务
+        # 1. Create task
         url = f"{self.server_url}/add_task"
         data = {
             'workflow_id': self.workflow_id,
@@ -107,21 +107,21 @@ class MaWorkflow:
         response = requests.post(url, json=data)
         
         if response.status_code != 200:
-            raise Exception(f"请求失败，状态码：{response.status_code}, 响应：{response.text}")
+            raise Exception(f"Request failed, status code: {response.status_code}, response: {response.text}")
         
         result = response.json()
         if result.get("status") != "success":
-            raise Exception(f"添加任务失败: {result.get('message', 'Unknown error')}")
+            raise Exception(f"Failed to add task: {result.get('message', 'Unknown error')}")
         
         task_id = result["task_id"]
         
-        # 2. 构建输入参数配置
+        # 2. Build input parameter configuration
         task_input = self._build_task_input(inputs, metadata)
         
-        # 3. 构建输出参数配置
+        # 3. Build output parameter configuration
         task_output = self._build_task_output(metadata)
         
-        # 4. 保存任务配置
+        # 4. Save task configuration
         save_url = f"{self.server_url}/save_task"
         save_data = {
             'workflow_id': self.workflow_id,
@@ -131,19 +131,19 @@ class MaWorkflow:
             'task_input': task_input,
             'task_output': task_output,
             'resources': metadata.resources,
-            'node_type': metadata.node_type,  # 传递节点类型
+            'node_type': metadata.node_type,  # Pass node type
         }
         
         save_response = requests.post(save_url, json=save_data)
         
         if save_response.status_code != 200:
-            raise Exception(f"保存任务失败，状态码：{save_response.status_code}")
+            raise Exception(f"Failed to save task, status code: {save_response.status_code}")
         
         save_result = save_response.json()
         if save_result.get("status") != "success":
-            raise Exception(f"保存任务失败: {save_result.get('message', 'Unknown error')}")
+            raise Exception(f"Failed to save task: {save_result.get('message', 'Unknown error')}")
         
-        # 5. 创建任务对象
+        # 5. Create task object
         task = MaTask(task_id, self.workflow_id, self.server_url, task_name, metadata.outputs)
         self._tasks[task_id] = task
         
@@ -151,20 +151,20 @@ class MaWorkflow:
     
     def _upload_file(self, file_input: FileInput) -> str:
         """
-        上传文件到服务器（内部方法）
+        Upload file to server (internal method)
         
         Args:
-            file_input: 文件输入对象
+            file_input: File input object
             
         Returns:
-            str: 服务器文件路径
+            str: Server file path
         """
         url = f"{self.server_url}/upload_file/{self.workflow_id}"
         
-        # 读取文件内容
+        # Read file content
         file_content = file_input.read_bytes()
         
-        # 上传文件
+        # Upload file
         files = {'file': (file_input.filename, file_content)}
         response = requests.post(url, files=files)
         
@@ -173,12 +173,12 @@ class MaWorkflow:
             if result.get("status") == "success":
                 return result["server_path"]
             else:
-                raise Exception(f"文件上传失败: {result.get('message', 'Unknown error')}")
+                raise Exception(f"File upload failed: {result.get('message', 'Unknown error')}")
         else:
-            raise Exception(f"文件上传失败，状态码：{response.status_code}")
+            raise Exception(f"File upload failed, status code: {response.status_code}")
     
     def _build_task_input(self, inputs: Dict[str, Any], metadata) -> Dict[str, Any]:
-        """构建任务输入配置（内部方法）"""
+        """Build task input configuration (internal method)"""
         if inputs is None:
             inputs = {}
         
@@ -188,24 +188,24 @@ class MaWorkflow:
             input_value = inputs.get(input_key)
             data_type = metadata.data_types.get(input_key, "str")
             
-            # 检查是否是TaskOutput引用
+            # Check if it's a TaskOutput reference
             if isinstance(input_value, TaskOutput):
                 input_schema = "from_task"
                 value = input_value.to_reference_string()
-            # 检查是否是FileInput对象
+            # Check if it's a FileInput object
             elif isinstance(input_value, FileInput):
                 input_schema = "from_user"
-                # 上传文件并获取服务器路径
+                # Upload file and get server path
                 value = self._upload_file(input_value)
-            # 检查数据类型是否是文件类型但输入是字符串路径
+            # Check if data type is file type but input is string path
             elif is_file_type(data_type) and isinstance(input_value, str):
                 input_schema = "from_user"
-                # 自动将字符串路径转换为FileInput并上传
+                # Automatically convert string path to FileInput and upload
                 try:
                     file_input = FileInput(input_value)
                     value = self._upload_file(file_input)
                 except Exception as e:
-                    # 如果不是有效的文件路径，直接使用原值
+                    # If not a valid file path, use original value directly
                     value = input_value
             else:
                 input_schema = "from_user"
@@ -221,7 +221,7 @@ class MaWorkflow:
         return task_input
     
     def _build_task_output(self, metadata) -> Dict[str, Any]:
-        """构建任务输出配置（内部方法）"""
+        """Build task output configuration (internal method)"""
         task_output = {"output_params": {}}
         
         for idx, output_key in enumerate(metadata.outputs, start=1):
@@ -234,7 +234,7 @@ class MaWorkflow:
     
     def _add_task_manual(self, task_type: str, task_name: Optional[str]) -> MaTask:
         """
-        手动添加任务（旧API，内部方法）
+        Manually add task (legacy API, internal method)
         """
         url = f"{self.server_url}/add_task"
         data = {
@@ -253,16 +253,16 @@ class MaWorkflow:
                 self._tasks[task_id] = task
                 return task
             else:
-                raise Exception(f"添加任务失败: {result.get('message', 'Unknown error')}")
+                raise Exception(f"Failed to add task: {result.get('message', 'Unknown error')}")
         else:
-            raise Exception(f"请求失败，状态码：{response.status_code}, 响应：{response.text}")
+            raise Exception(f"Request failed, status code: {response.status_code}, response: {response.text}")
     
     def get_tasks(self) -> List[Dict[str, str]]:
         """
-        获取工作流中的所有任务列表
+        Get list of all tasks in workflow
         
         Returns:
-            List[Dict]: 任务列表，每个任务包含id和name
+            List[Dict]: Task list, each task contains id and name
         """
         url = f"{self.server_url}/get_workflow_tasks/{self.workflow_id}"
         response = requests.get(url)
@@ -272,20 +272,20 @@ class MaWorkflow:
             if result.get("status") == "success":
                 return result.get("tasks", [])
             else:
-                raise Exception(f"获取任务列表失败: {result.get('message', 'Unknown error')}")
+                raise Exception(f"Failed to get task list: {result.get('message', 'Unknown error')}")
         else:
-            raise Exception(f"请求失败，状态码：{response.status_code}, 响应：{response.text}")
+            raise Exception(f"Request failed, status code: {response.status_code}, response: {response.text}")
     
     def add_edge(self, source_task: MaTask, target_task: MaTask) -> None:
         """
-        添加任务间的依赖边（source_task -> target_task）
+        Add dependency edge between tasks (source_task -> target_task)
         
         Args:
-            source_task: 源任务
-            target_task: 目标任务
+            source_task: Source task
+            target_task: Target task
             
         Raises:
-            Exception: 如果添加失败
+            Exception: If addition fails
         """
         url = f"{self.server_url}/add_edge"
         data = {
@@ -299,20 +299,20 @@ class MaWorkflow:
         if response.status_code == 200:
             result = response.json()
             if result.get("status") != "success":
-                raise Exception(f"添加边失败: {result.get('message', 'Unknown error')}")
+                raise Exception(f"Failed to add edge: {result.get('message', 'Unknown error')}")
         else:
-            raise Exception(f"请求失败，状态码：{response.status_code}, 响应：{response.text}")
+            raise Exception(f"Request failed, status code: {response.status_code}, response: {response.text}")
     
     def del_edge(self, source_task: MaTask, target_task: MaTask) -> None:
         """
-        删除任务间的依赖边
+        Delete dependency edge between tasks
         
         Args:
-            source_task: 源任务
-            target_task: 目标任务
+            source_task: Source task
+            target_task: Target task
             
         Raises:
-            Exception: 如果删除失败
+            Exception: If deletion fails
         """
         url = f"{self.server_url}/del_edge"
         data = {
@@ -326,18 +326,18 @@ class MaWorkflow:
         if response.status_code == 200:
             result = response.json()
             if result.get("status") != "success":
-                raise Exception(f"删除边失败: {result.get('message', 'Unknown error')}")
+                raise Exception(f"Failed to delete edge: {result.get('message', 'Unknown error')}")
         else:
-            raise Exception(f"请求失败，状态码：{response.status_code}, 响应：{response.text}")
+            raise Exception(f"Request failed, status code: {response.status_code}, response: {response.text}")
     
     def run(self) -> None:
         """
-        运行工作流
+        Run workflow
         
-        注意：此方法只是提交工作流执行请求，需要调用 get_results() 来获取执行结果
+        Note: This method only submits the workflow execution request, need to call get_results() to get execution results
         
         Raises:
-            Exception: 如果运行失败
+            Exception: If execution fails
         """
         url = f"{self.server_url}/run_workflow"
         data = {
@@ -349,28 +349,28 @@ class MaWorkflow:
         if response.status_code == 200:
             result = response.json()
             if result.get("status") != "success":
-                raise Exception(f"运行工作流失败: {result.get('message', 'Unknown error')}")
+                raise Exception(f"Failed to run workflow: {result.get('message', 'Unknown error')}")
         else:
-            raise Exception(f"请求失败，状态码：{response.status_code}, 响应：{response.text}")
+            raise Exception(f"Request failed, status code: {response.status_code}, response: {response.text}")
     
     def get_results(self, verbose: bool = True, output_dir: str = "workflow_results") -> Dict[str, Any]:
         """
-        运行工作流并获取最终结果
+        Run workflow and get final results
         
         Args:
-            verbose: 是否打印执行进度（默认True）
-            output_dir: 文件下载目录（默认 workflow_results）
+            verbose: Whether to print execution progress (default True)
+            output_dir: File download directory (default workflow_results)
             
         Returns:
-            Dict: 最后一个任务的输出结果（文件路径已替换为本地路径）
+            Dict: Output result of the last task (file paths replaced with local paths)
             
-        示例:
+        Example:
             workflow.run()
             result = workflow.get_results()
             # result = {"output_image": "workflow_results/xxx/image.jpg", "metadata": {...}}
         """
         self._execution_results = {}
-        self._downloaded_files = {}  # 服务器路径 -> 本地路径的映射
+        self._downloaded_files = {}  # Server path -> local path mapping
         ws_url = self.server_url.replace('http://', 'ws://').replace('https://', 'wss://')
         url = f"{ws_url}/get_workflow_res/{self.workflow_id}"
         
@@ -386,12 +386,12 @@ class MaWorkflow:
         
         def on_error(ws, error):
             nonlocal exception_occurred
-            # 检查是否是正常关闭
+            # Check if it's a normal closure
             if hasattr(error, 'data'):
                 try:
                     error_code = int.from_bytes(error.data, 'big')
                     if error_code == 1000:
-                        return  # 正常关闭
+                        return  # Normal closure
                 except:
                     pass
             exception_occurred = True
@@ -414,13 +414,13 @@ class MaWorkflow:
             on_close=on_close
         )
         
-        # 在后台线程中运行WebSocket
+        # Run WebSocket in background thread
         import threading
         ws_thread = threading.Thread(target=ws.run_forever)
         ws_thread.daemon = True
         ws_thread.start()
         
-        # 等待并处理消息
+        # Wait and process messages
         import time
         from pathlib import Path
         
@@ -433,8 +433,8 @@ class MaWorkflow:
                 msg = messages[last_count]
                 msg_type = msg.get("type")
                 
-                # 提取 data 字段（如果存在）
-                msg_data = msg.get("data", msg)  # 兼容两种格式
+                # Extract data field (if exists)
+                msg_data = msg.get("data", msg)  # Compatible with both formats
                 
                 if verbose:
                     if msg_type == "start_task":
@@ -460,7 +460,7 @@ class MaWorkflow:
                                 print(f"\nTraceback:", file=sys.stderr)
                                 print(details['traceback'], file=sys.stderr)
                 
-                # 保存任务结果
+                # Save task results
                 if msg_type == "finish_task":
                     task_id = msg_data.get("task_id")
                     result = msg_data.get("result")
@@ -470,7 +470,7 @@ class MaWorkflow:
                         last_task_id = task_id
                 
                 elif msg_type == "task_exception":
-                    # 保存错误信息
+                    # Save error information
                     task_id = msg_data.get("task_id")
                     if task_id:
                         error_info = {
@@ -496,7 +496,7 @@ class MaWorkflow:
             
             final_result = {}
             for key, value in last_task_result.items():
-                # 如果是文件路径，下载它
+                # If it's a file path, download it
                 if isinstance(value, str) and self._looks_like_file_path(value):
                     try:
                         output_dir_path = Path(output_dir) / self.workflow_id
@@ -521,22 +521,42 @@ class MaWorkflow:
         
         return last_task_result if last_task_result else {}
     
-    def _download_file(self, server_path: str, local_path: str = None) -> str:
+    def show_results(self, output_dir: str = "workflow_results") -> Dict[str, Any]:
         """
-        从服务器下载文件到本地
+        Simple interface to run workflow and display results with automatic progress printing
+        
+        This is a high-level wrapper around get_results() that automatically prints
+        execution progress and returns the final result. Perfect for quick testing and demos.
         
         Args:
-            server_path: 服务器文件路径
-            local_path: 本地保存路径（可选，默认保存到当前目录）
+            output_dir: File download directory (default workflow_results)
+        
+        Returns:
+            Dict: Output result of the last task (file paths replaced with local paths)
+        
+        Example:
+            workflow.run()
+            result = workflow.show_results()
+            print(f"Final output: {result}")
+        """
+        return self.get_results(verbose=True, output_dir=output_dir)
+    
+    def _download_file(self, server_path: str, local_path: str = None) -> str:
+        """
+        Download file from server to local
+        
+        Args:
+            server_path: Server file path
+            local_path: Local save path (optional, defaults to current directory)
             
         Returns:
-            str: 本地文件路径
+            str: Local file path
             
         Raises:
-            Exception: 如果下载失败
+            Exception: If download fails
             
-        示例:
-            # 下载单个文件
+        Example:
+            # Download single file
             local_path = workflow.download_file(
                 server_path="temp/workflow_id/output.jpg",
                 local_path="./results/output.jpg"
@@ -550,65 +570,65 @@ class MaWorkflow:
         response = requests.get(url, params=params)
         
         if response.status_code == 200:
-            # 确定本地保存路径
+            # Determine local save path
             if local_path is None:
-                # 默认保存到当前目录，使用原文件名
+                # Default to current directory, use original filename
                 server_path_obj = Path(server_path)
                 local_path = server_path_obj.name
             
             local_path_obj = Path(local_path)
             
-            # 确保目录存在
+            # Ensure directory exists
             local_path_obj.parent.mkdir(parents=True, exist_ok=True)
             
-            # 保存文件
+            # Save file
             with open(local_path_obj, 'wb') as f:
                 f.write(response.content)
             
             return str(local_path_obj)
         else:
-            # 可能是JSON错误响应
+            # Possibly JSON error response
             try:
                 result = response.json()
-                raise Exception(f"下载文件失败: {result.get('message', 'Unknown error')}")
+                raise Exception(f"Failed to download file: {result.get('message', 'Unknown error')}")
             except:
-                raise Exception(f"下载文件失败，状态码：{response.status_code}")
+                raise Exception(f"Failed to download file, status code: {response.status_code}")
     
     def download_file(self, server_path: str, local_path: str = None) -> str:
         """
-        手动下载指定文件（高级用法）
+        Manually download specified file (advanced usage)
         
         Args:
-            server_path: 服务器文件路径
-            local_path: 本地保存路径（可选）
+            server_path: Server file path
+            local_path: Local save path (optional)
             
         Returns:
-            str: 本地文件路径
+            str: Local file path
         """
         return self._download_file(server_path, local_path)
     
     def _looks_like_file_path(self, value: str) -> bool:
         """
-        启发式判断字符串是否是文件路径（内部方法）
+        Heuristically determine if string is a file path (internal method)
         """
-        # 检查是否包含常见文件扩展名
-        common_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp',  # 图片
-                            '.mp3', '.wav', '.ogg', '.flac', '.m4a',  # 音频
-                            '.mp4', '.avi', '.mov', '.mkv',  # 视频
-                            '.txt', '.pdf', '.doc', '.docx',  # 文档
-                            '.zip', '.tar', '.gz']  # 压缩
+        # Check if it contains common file extensions
+        common_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp',  # Images
+                            '.mp3', '.wav', '.ogg', '.flac', '.m4a',  # Audio
+                            '.mp4', '.avi', '.mov', '.mkv',  # Video
+                            '.txt', '.pdf', '.doc', '.docx',  # Documents
+                            '.zip', '.tar', '.gz']  # Archives
         
         value_lower = value.lower()
         return any(value_lower.endswith(ext) for ext in common_extensions)
     
     def cleanup(self) -> None:
         """
-        清理服务端临时文件
+        Clean up server-side temporary files
         
-        注意：get_results() 已自动下载所有文件，无需担心丢失结果
+        Note: get_results() has automatically downloaded all files, no need to worry about losing results
         
         Raises:
-            Exception: 如果清理失败
+            Exception: If cleanup fails
         """
         url = f"{self.server_url}/cleanup_workflow/{self.workflow_id}"
         response = requests.post(url)
@@ -616,9 +636,9 @@ class MaWorkflow:
         if response.status_code == 200:
             result = response.json()
             if result.get("status") != "success":
-                raise Exception(f"清理工作流失败: {result.get('message', 'Unknown error')}")
+                raise Exception(f"Failed to cleanup workflow: {result.get('message', 'Unknown error')}")
         else:
-            raise Exception(f"请求失败，状态码：{response.status_code}, 响应：{response.text}")
+            raise Exception(f"Request failed, status code: {response.status_code}, response: {response.text}")
     
     def __repr__(self) -> str:
         return f"MaWorkflow(id='{self.workflow_id[:8]}...', tasks={len(self._tasks)})"

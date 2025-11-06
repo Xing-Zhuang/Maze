@@ -1,5 +1,5 @@
 """
-文件处理工具类
+File handling utility classes
 """
 
 from typing import Optional
@@ -8,9 +8,9 @@ from pathlib import Path
 
 class FileInput:
     """
-    文件输入标记类，用于明确指定某个参数是文件路径
+    File input marker class to explicitly specify a parameter as a file path
     
-    示例:
+    Example:
         task = workflow.add_task(
             process_image,
             inputs={
@@ -22,33 +22,33 @@ class FileInput:
     
     def __init__(self, local_path: str):
         """
-        初始化文件输入
+        Initialize file input
         
         Args:
-            local_path: 本地文件路径
+            local_path: Local file path
         """
         self.local_path = str(local_path)
         self.path = Path(local_path)
         
-        # 验证文件存在
+        # Validate file exists
         if not self.path.exists():
-            raise FileNotFoundError(f"文件不存在: {local_path}")
+            raise FileNotFoundError(f"File does not exist: {local_path}")
         
         if not self.path.is_file():
-            raise ValueError(f"路径不是文件: {local_path}")
+            raise ValueError(f"Path is not a file: {local_path}")
     
     @property
     def filename(self) -> str:
-        """获取文件名"""
+        """Get filename"""
         return self.path.name
     
     @property
     def extension(self) -> str:
-        """获取文件扩展名"""
+        """Get file extension"""
         return self.path.suffix
     
     def read_bytes(self) -> bytes:
-        """读取文件内容（字节）"""
+        """Read file content (bytes)"""
         return self.path.read_bytes()
     
     def __repr__(self) -> str:
@@ -57,15 +57,15 @@ class FileInput:
 
 def is_file_type(data_type: str) -> bool:
     """
-    检查数据类型是否是文件类型
+    Check if data type is a file type
     
     Args:
-        data_type: 数据类型字符串
+        data_type: Data type string
         
     Returns:
-        bool: 是否是文件类型
+        bool: Whether it is a file type
         
-    示例:
+    Example:
         >>> is_file_type("file")
         True
         >>> is_file_type("file:image")
@@ -80,15 +80,15 @@ def is_file_type(data_type: str) -> bool:
 
 def extract_file_subtype(data_type: str) -> Optional[str]:
     """
-    提取文件子类型
+    Extract file subtype
     
     Args:
-        data_type: 数据类型字符串
+        data_type: Data type string
         
     Returns:
-        Optional[str]: 文件子类型，如果没有则返回None
+        Optional[str]: File subtype, or None if not present
         
-    示例:
+    Example:
         >>> extract_file_subtype("file:image")
         'image'
         >>> extract_file_subtype("file")

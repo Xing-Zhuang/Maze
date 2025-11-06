@@ -1,7 +1,7 @@
 """
-内置任务库
+Built-in task library
 
-这个包包含了预定义的任务函数，使用@task装饰器标记
+This package contains predefined task functions marked with the @task decorator
 """
 
 from maze.client.front.builtin import simpleTask

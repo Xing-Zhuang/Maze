@@ -1,7 +1,7 @@
 """
-内置的简单任务示例
+Built-in simple task examples
 
-这些任务使用 @task 装饰器定义，包含了输入输出和资源需求的元数据
+These tasks are defined using the @task decorator and include metadata for inputs, outputs, and resource requirements
 """
 
 from datetime import datetime
@@ -36,13 +36,13 @@ def task1(params):
 )
 def task2(params):
     """
-    任务2：获取输入并添加当前时间戳和后缀
+    Task 2: Get input and add current timestamp and suffix
     
-    输入:
-        task2_input: 输入字符串
+    Input:
+        task2_input: Input string
         
-    输出:
-        task2_output: 输入字符串 + 时间戳 + "===="
+    Output:
+        task2_output: Input string + timestamp + "===="
     """
 
     

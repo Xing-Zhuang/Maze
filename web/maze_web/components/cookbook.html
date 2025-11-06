@@ -496,11 +496,8 @@ def main():
     print("\n🚀 Starting workflow execution...")
     workflow.run()
     
-    # Get results
-    for message in workflow.get_results():
-        if message.get("type") == "finish_workflow":
-            print("\n✅ Workflow completed successfully!")
-            break
+    # Show results with automatic progress display
+    workflow.show_results()
 
 if __name__ == "__main__":
     main()

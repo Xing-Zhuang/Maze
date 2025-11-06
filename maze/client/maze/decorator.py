@@ -1,5 +1,5 @@
 """
-任务装饰器，用于定义任务的元数据和配置
+Task decorators for defining task metadata and configuration
 """
 
 import inspect
@@ -11,15 +11,15 @@ from dataclasses import dataclass
 
 @dataclass
 class TaskMetadata:
-    """任务元数据"""
+    """Task metadata"""
     func: Callable
     func_name: str
     code_str: str
-    code_ser: str  # 序列化的函数（使用 cloudpickle）
+    code_ser: str  # Serialized function (using cloudpickle)
     inputs: List[str]
     outputs: List[str]
     resources: Dict[str, Any]
-    data_types: Dict[str, str]  # 参数的数据类型
+    data_types: Dict[str, str]  # Parameter data types
 
 
 def task(inputs: List[str], 
@@ -27,15 +27,15 @@ def task(inputs: List[str],
          resources: Dict[str, Any] = None,
          data_types: Dict[str, str] = None):
     """
-    任务装饰器，用于标记和配置任务函数
+    Task decorator for marking and configuring task functions
     
     Args:
-        inputs: 输入参数名列表
-        outputs: 输出参数名列表
-        resources: 资源需求配置，默认为 {"cpu": 1, "cpu_mem": 128, "gpu": 0, "gpu_mem": 0}
-        data_types: 参数数据类型映射，默认全部为 "str"
+        inputs: List of input parameter names
+        outputs: List of output parameter names
+        resources: Resource requirements configuration, defaults to {"cpu": 1, "cpu_mem": 128, "gpu": 0, "gpu_mem": 0}
+        data_types: Parameter data type mapping, defaults to "str" for all
         
-    示例:
+    Example:
         @task(
             inputs=["input_value"],
             outputs=["output_value"],
@@ -46,37 +46,37 @@ def task(inputs: List[str],
             return {"output_value": value + " processed"}
     """
     def decorator(func: Callable) -> Callable:
-        # 获取函数源代码（不包含装饰器）
+        # Get function source code (excluding decorators)
         source_lines = inspect.getsourcelines(func)[0]
         
-        # 找到函数定义的开始（跳过装饰器行）
+        # Find the start of function definition (skip decorator lines)
         func_start_idx = 0
         for idx, line in enumerate(source_lines):
             if line.strip().startswith('def '):
                 func_start_idx = idx
                 break
         
-        # 提取从函数定义开始的代码
+        # Extract code starting from function definition
         func_lines = source_lines[func_start_idx:]
         code_str = ''.join(func_lines)
         
-        # 使用 cloudpickle 序列化整个函数（包括外部 import 和依赖）
+        # Serialize entire function using cloudpickle (including external imports and dependencies)
         code_ser = base64.b64encode(cloudpickle.dumps(func)).decode('utf-8')
         
-        # 默认资源配置
+        # Default resource configuration
         if resources is None:
             resources_config = {"cpu": 1, "cpu_mem": 128, "gpu": 0, "gpu_mem": 0}
         else:
             resources_config = resources
         
-        # 默认数据类型都是str
+        # Default data types are all str
         if data_types is None:
             types_config = {param: "str" for param in inputs + outputs}
         else:
             types_config = {param: "str" for param in inputs + outputs}
             types_config.update(data_types)
         
-        # 创建元数据
+        # Create metadata
         metadata = TaskMetadata(
             func=func,
             func_name=func.__name__,
@@ -88,7 +88,7 @@ def task(inputs: List[str],
             data_types=types_config
         )
         
-        # 将元数据附加到函数上
+        # Attach metadata to function
         func._maze_task_metadata = metadata
         
         return func
@@ -98,19 +98,19 @@ def task(inputs: List[str],
 
 def get_task_metadata(func: Callable) -> TaskMetadata:
     """
-    获取函数的任务元数据
+    Get task metadata from function
     
     Args:
-        func: 被@task装饰的函数
+        func: Function decorated with @task
         
     Returns:
-        TaskMetadata: 任务元数据
+        TaskMetadata: Task metadata
         
     Raises:
-        ValueError: 如果函数没有被@task装饰
+        ValueError: If function is not decorated with @task
     """
     if not hasattr(func, '_maze_task_metadata'):
-        raise ValueError(f"函数 {func.__name__} 没有使用 @task 装饰器")
+        raise ValueError(f"Function {func.__name__} is not decorated with @task")
     
     return func._maze_task_metadata
 

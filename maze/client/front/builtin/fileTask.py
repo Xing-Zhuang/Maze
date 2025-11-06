@@ -1,7 +1,7 @@
 """
-内置的文件处理任务示例
+Built-in file processing task examples
 
-这些任务展示如何处理图片、音频等文件类型
+These tasks demonstrate how to handle file types like images and audio
 """
 
 from maze.client.front.decorator import task
@@ -18,13 +18,13 @@ from maze.client.front.decorator import task
 )
 def get_image_info(params):
     """
-    获取图片信息
+    Get image information
     
-    输入:
-        image_path: 图片文件路径（自动上传到服务器）
+    Input:
+        image_path: Image file path (automatically uploaded to server)
         
-    输出:
-        info: 图片信息（尺寸、格式等）
+    Output:
+        info: Image information (dimensions, format, etc.)
     """
     from PIL import Image
     import os
@@ -60,15 +60,15 @@ def get_image_info(params):
 )
 def resize_image(params):
     """
-    调整图片大小
+    Resize image
     
-    输入:
-        image_path: 输入图片路径
-        output_size: 输出尺寸，格式 "宽x高"
+    Input:
+        image_path: Input image path
+        output_size: Output size in format "widthxheight"
         
-    输出:
-        resized_image_path: 调整后的图片路径
-        info: 处理信息
+    Output:
+        resized_image_path: Resized image path
+        info: Processing information
     """
     from PIL import Image
     import os
@@ -77,20 +77,20 @@ def resize_image(params):
     image_path = params.get("image_path")
     output_size_str = params.get("output_size")
     
-    # 解析目标尺寸
+    # Parse target size
     width, height = map(int, output_size_str.split("x"))
     
-    # 打开并调整图片
+    # Open and resize image
     img = Image.open(image_path)
     original_size = img.size
     
     resized_img = img.resize((width, height), Image.Resampling.LANCZOS)
     
-    # 生成输出路径（在同目录下）
+    # Generate output path (in same directory)
     input_path = Path(image_path)
     output_path = input_path.parent / f"resized_{input_path.name}"
     
-    # 保存
+    # Save
     resized_img.save(output_path, quality=95)
     
     info = {
@@ -117,28 +117,28 @@ def resize_image(params):
 )
 def convert_to_grayscale(params):
     """
-    将图片转换为灰度图
+    Convert image to grayscale
     
-    输入:
-        image_path: 输入图片路径
+    Input:
+        image_path: Input image path
         
-    输出:
-        grayscale_image_path: 灰度图片路径
+    Output:
+        grayscale_image_path: Grayscale image path
     """
     from PIL import Image
     from pathlib import Path
     
     image_path = params.get("image_path")
     
-    # 打开并转换
+    # Open and convert
     img = Image.open(image_path)
     grayscale_img = img.convert('L')
     
-    # 生成输出路径
+    # Generate output path
     input_path = Path(image_path)
     output_path = input_path.parent / f"gray_{input_path.name}"
     
-    # 保存
+    # Save
     grayscale_img.save(output_path)
     
     return {"grayscale_image_path": str(output_path)}

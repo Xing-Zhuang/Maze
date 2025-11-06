@@ -540,27 +540,8 @@ def main():
     
     workflow.run()
     
-    # 7. Get real-time results
-    task_count = 0
-    for message in workflow.get_results(verbose=False):
-        msg_type = message.get("type")
-        msg_data = message.get("data", {})
-        
-        if msg_type == "start_task":
-            task_count += 1
-            task_id = msg_data.get("task_id", "")[:8]
-            print(f"⏳ [{task_count}/5] Task started: {task_id}...")
-            
-        elif msg_type == "finish_task":
-            task_id = msg_data.get("task_id", "")[:8]
-            print(f"✅ Task completed: {task_id}")
-            
-        elif msg_type == "finish_workflow":
-            print()
-            print("=" * 70)
-            print("🎉 Workflow execution completed!")
-            print("=" * 70)
-            break
+    # 7. Get results with automatic progress display
+    result = workflow.show_results(output_dir=OUTPUT_DIR)
     
     print()
     print("📁 All files saved to:", OUTPUT_DIR)

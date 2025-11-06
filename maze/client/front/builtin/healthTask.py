@@ -1,7 +1,7 @@
 """
-医疗健康相关任务
+Medical health related tasks
 
-使用阿里云DashScope实现的医疗诊断辅助功能
+Medical diagnosis assistance features implemented using Alibaba Cloud DashScope
 """
 
 from maze.client.front.decorator import task
@@ -19,13 +19,13 @@ import os
 )
 def analyze_tongue_image(params):
     """
-    使用VLM分析舌苔图片特征
+    Analyze tongue coating image features using VLM
     
-    输入:
-        tongue_image_path: 舌苔图片路径（自动上传到服务器）
+    Input:
+        tongue_image_path: Tongue coating image path (automatically uploaded to server)
         
-    输出:
-        tongue_features: 提取的舌苔特征（颜色、苔质、形状等）
+    Output:
+        tongue_features: Extracted tongue coating features (color, coating quality, shape, etc.)
     """
     import dashscope
     from dashscope import MultiModalConversation
@@ -35,15 +35,15 @@ def analyze_tongue_image(params):
     api_key = os.getenv("DASHSCOPE_API_KEY")
     
     if not api_key:
-        raise ValueError("未找到DASHSCOPE_API_KEY环境变量")
+        raise ValueError("DASHSCOPE_API_KEY environment variable not found")
     
     dashscope.api_key = api_key
     
-    # 读取图片并转换为base64
+    # Read image and convert to base64
     with open(tongue_image_path, 'rb') as f:
         image_data = base64.b64encode(f.read()).decode('utf-8')
     
-    # 使用qwen-vl-max模型分析舌苔图片
+    # Analyze tongue coating image using qwen-vl-max model
     messages = [{
         'role': 'user',
         'content': [
@@ -78,7 +78,7 @@ def analyze_tongue_image(params):
         
         return {"tongue_features": tongue_features}
     else:
-        raise Exception(f"VLM分析失败: {response.message}")
+            raise Exception(f"VLM analysis failed: {response.message}")
 
 
 @task(
@@ -92,13 +92,13 @@ def analyze_tongue_image(params):
 )
 def extract_symptoms(params):
     """
-    使用LLM从患者描述中提取结构化症状信息
+    Extract structured symptom information from patient descriptions using LLM
     
-    输入:
-        symptom_description: 患者的症状描述文本
+    Input:
+        symptom_description: Patient's symptom description text
         
-    输出:
-        structured_symptoms: 结构化的症状信息
+    Output:
+        structured_symptoms: Structured symptom information
     """
     import dashscope
     from dashscope import Generation
@@ -108,7 +108,7 @@ def extract_symptoms(params):
     api_key = os.getenv("DASHSCOPE_API_KEY")
     
     if not api_key:
-        raise ValueError("未找到DASHSCOPE_API_KEY环境变量")
+        raise ValueError("DASHSCOPE_API_KEY environment variable not found")
     
     dashscope.api_key = api_key
     
@@ -149,9 +149,9 @@ def extract_symptoms(params):
     if response.status_code == 200:
         extracted_text = response.output.choices[0].message.content
         
-        # 尝试解析JSON
+        # Try to parse JSON
         try:
-            # 清理可能的markdown代码块标记
+            # Clean possible markdown code block markers
             if '```json' in extracted_text:
                 extracted_text = extracted_text.split('```json')[1].split('```')[0]
             elif '```' in extracted_text:
@@ -159,10 +159,10 @@ def extract_symptoms(params):
             
             structured_data = json.loads(extracted_text.strip())
         except json.JSONDecodeError:
-            # 如果解析失败，返回原始文本
+            # If parsing fails, return raw text
             structured_data = {
                 "raw_extraction": extracted_text,
-                "parse_error": "JSON解析失败，返回原始文本"
+                "parse_error": "JSON parsing failed, returning raw text"
             }
         
         structured_symptoms = {
@@ -173,7 +173,7 @@ def extract_symptoms(params):
         
         return {"structured_symptoms": structured_symptoms}
     else:
-        raise Exception(f"症状提取失败: {response.message}")
+        raise Exception(f"Symptom extraction failed: {response.message}")
 
 
 @task(
@@ -188,14 +188,14 @@ def extract_symptoms(params):
 )
 def generate_medical_advice(params):
     """
-    结合舌诊和症状，使用联网搜索生成医疗建议
+    Generate medical advice by combining tongue diagnosis and symptoms using web search
     
-    输入:
-        tongue_features: 舌苔特征分析结果
-        structured_symptoms: 结构化症状信息
+    Input:
+        tongue_features: Tongue coating feature analysis results
+        structured_symptoms: Structured symptom information
         
-    输出:
-        medical_advice: 综合医疗建议
+    Output:
+        medical_advice: Comprehensive medical advice
     """
     import dashscope
     from dashscope import Generation
@@ -206,12 +206,12 @@ def generate_medical_advice(params):
     api_key = os.getenv("DASHSCOPE_API_KEY")
     
     if not api_key:
-        raise ValueError("未找到DASHSCOPE_API_KEY环境变量")
+        raise ValueError("DASHSCOPE_API_KEY environment variable not found")
     
     dashscope.api_key = api_key
     
-    # 构建综合分析提示词
-    prompt = f"""作为一名经验丰富的中西医结合医师，请根据以下信息提供专业的医疗建议：
+    # Build comprehensive analysis prompt
+    prompt = f"""As an experienced integrated Chinese and Western medicine physician, please provide professional medical advice based on the following information:
 
 【舌诊分析】
 {json.dumps(tongue_features, ensure_ascii=False, indent=2)}
@@ -253,20 +253,20 @@ def generate_medical_advice(params):
 
 只输出JSON，不要其他内容。"""
     
-    # 使用联网搜索功能增强的qwen-max
+    # Use qwen-max enhanced with web search capability
     response = Generation.call(
         model='qwen-max',
         prompt=prompt,
         result_format='message',
-        enable_search=True  # 启用联网搜索
+        enable_search=True  # Enable web search
     )
     print(response)
     if response.status_code == 200:
         advice_text = response.output.choices[0].message.content
         
-        # 尝试解析JSON
+        # Try to parse JSON
         try:
-            # 清理可能的markdown代码块标记
+            # Clean possible markdown code block markers
             if '```json' in advice_text:
                 advice_text = advice_text.split('```json')[1].split('```')[0]
             elif '```' in advice_text:
@@ -274,10 +274,10 @@ def generate_medical_advice(params):
             
             advice_data = json.loads(advice_text.strip())
         except json.JSONDecodeError:
-            # 如果解析失败，返回原始文本
+            # If parsing fails, return raw text
             advice_data = {
                 "raw_advice": advice_text,
-                "parse_error": "JSON解析失败，返回原始文本"
+                "parse_error": "JSON parsing failed, returning raw text"
             }
         
         medical_advice = {
@@ -289,5 +289,5 @@ def generate_medical_advice(params):
         
         return {"medical_advice": medical_advice}
     else:
-        raise Exception(f"生成医疗建议失败: {response.message}")
+        raise Exception(f"Failed to generate medical advice: {response.message}")
 

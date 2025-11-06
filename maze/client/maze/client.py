@@ -5,31 +5,31 @@ from maze.client.maze.workflow import MaWorkflow
 
 class MaClient:
     """
-    Maze客户端，用于连接Maze服务器并管理工作流
+    Maze client for connecting to Maze server and managing workflows
     
-    示例:
+    Example:
         client = MaClient("http://localhost:8000")
         workflow = client.create_workflow()
     """
     
     def __init__(self, server_url: str = "http://localhost:8000"):
         """
-        初始化Maze客户端
+        Initialize Maze client
         
         Args:
-            server_url: Maze服务器地址，默认为 http://localhost:8000
+            server_url: Maze server address, defaults to http://localhost:8000
         """
         self.server_url = server_url.rstrip('/')
         
     def create_workflow(self) -> MaWorkflow:
         """
-        创建一个新的工作流
+        Create a new workflow
         
         Returns:
-            MaWorkflow: 工作流对象
+            MaWorkflow: Workflow object
             
         Raises:
-            Exception: 如果创建失败
+            Exception: If creation fails
         """
         url = f"{self.server_url}/create_workflow"
         response = requests.post(url)
@@ -40,28 +40,28 @@ class MaClient:
                 workflow_id = data["workflow_id"]
                 return MaWorkflow(workflow_id, self.server_url)
             else:
-                raise Exception(f"创建工作流失败: {data.get('message', 'Unknown error')}")
+                raise Exception(f"Failed to create workflow: {data.get('message', 'Unknown error')}")
         else:
-            raise Exception(f"请求失败，状态码：{response.status_code}, 响应：{response.text}")
+            raise Exception(f"Request failed, status code: {response.status_code}, response: {response.text}")
     
     def get_workflow(self, workflow_id: str) -> MaWorkflow:
         """
-        获取已存在的工作流对象
+        Get existing workflow object
         
         Args:
-            workflow_id: 工作流ID
+            workflow_id: Workflow ID
             
         Returns:
-            MaWorkflow: 工作流对象
+            MaWorkflow: Workflow object
         """
         return MaWorkflow(workflow_id, self.server_url)
     
     def get_ray_head_port(self) -> dict:
         """
-        获取Ray头节点端口（用于worker连接）
+        Get Ray head node port (for worker connection)
         
         Returns:
-            dict: 包含端口信息的字典
+            dict: Dictionary containing port information
         """
         url = f"{self.server_url}/get_head_ray_port"
         response = requests.post(url)
@@ -69,5 +69,5 @@ class MaClient:
         if response.status_code == 200:
             return response.json()
         else:
-            raise Exception(f"获取Ray端口失败，状态码：{response.status_code}")
+            raise Exception(f"Failed to get Ray port, status code: {response.status_code}")
 
