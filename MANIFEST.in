@@ -1,0 +1,24 @@
+# Include documentation and license
+include README.md
+include LICENSE
+include pyproject.toml
+
+# Include all Python files
+recursive-include maze *.py
+
+# Include type stubs if present
+recursive-include maze *.pyi
+
+# Exclude unnecessary files
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * .DS_Store
+recursive-exclude test *
+recursive-exclude examples *
+recursive-exclude web *
+recursive-exclude docs *
+recursive-exclude build *
+recursive-exclude assets *
+exclude .gitignore
+exclude .git*
+

@@ -37,9 +37,15 @@ log.txt
 
 # Ignore sensitive configuration files
 secrets.py
+.pypirc.template
 
 # macOS
 .DS_Store
 
 # Jupyter Notebook
 .ipynb_checkpoints/
+
+# PyPI publishing
+*.whl
+*.tar.gz
+twine.log

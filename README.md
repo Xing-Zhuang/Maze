@@ -37,9 +37,15 @@
 
 ## 1. Install
 
+**From PyPI (Recommended)**
+
+   ```bash
+   pip install maze-agent
+   ```
+
 **From source**
 
-   ```
+   ```bash
    git clone https://github.com/QinbinLi/Maze.git
    cd Maze
    pip install -e .
