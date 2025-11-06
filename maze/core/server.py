@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],    
 )
 
-mapath = MaPath(strategy="FCFS")
+mapath = MaPath()
 
 def signal_handler(signum, frame):
     mapath.cleanup()

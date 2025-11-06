@@ -14,10 +14,8 @@ from maze.core.scheduler.scheduler import scheduler_process
 from maze.utils.utils import get_available_ports
 
 class MaPath:
-    def __init__(self,strategy:str):
-        assert strategy == "FCFS" # Only support FCFS strategy currently
+    def __init__(self,strategy:str="Default"):
         self.strategy=strategy
-
         self.lock = lock = asyncio.Lock()
 
         self.workflows: Dict[str, Workflow|LangGraphWorkflow] = {}

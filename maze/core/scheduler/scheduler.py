@@ -18,7 +18,7 @@ from maze.core.scheduler.runtime import WorkflowRuntimeManager,TaskRuntime,Langg
 from maze.core.workflow.task import TaskType
 
 def scheduler_process(port1:int,port2:int,strategy:str,ray_head_port:int,ready_queue:mp.Queue):
-    if strategy == "FCFS":
+    if strategy == "Default":
         scheduler = Scheduler(port1,port2,ray_head_port,ready_queue)
     else:
         raise NotImplementedError
@@ -112,16 +112,11 @@ class Scheduler():
         socket_to_main = self.context.socket(zmq.DEALER)
         socket_to_main.connect(f"tcp://127.0.0.1:{port2}")
          
-        self.cur_ready_task = None 
-
         while True:
-            if self.cur_ready_task is None:
-                self.cur_ready_task =  self.task_queue.get()   
-                self.lock.acquire()
-                self.workflow_manager.add_task(self.cur_ready_task)
-            else:
-                self.lock.acquire()
-                    
+            self.cur_ready_task =  self.task_queue.get()
+            self.lock.acquire()
+            self.workflow_manager.add_task(self.cur_ready_task)
+           
             #Get the node can run the task
             selected_node: SelectedNode | None = self.resource_manager.select_node(task_need_resources=self.cur_ready_task.resources)
             if selected_node:
@@ -146,6 +141,7 @@ class Scheduler():
                 self.lock.release()
             else:
                 self.lock.release()
+                self.task_queue.put(self.cur_ready_task)
                 time.sleep(1)
 
     def _supervisor_thread(self, port2:int):
