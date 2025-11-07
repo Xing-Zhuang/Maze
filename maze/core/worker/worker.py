@@ -1,9 +1,11 @@
 from typing import Any,Dict
 import subprocess
-from venv import logger
 import ray
+import logging
 import requests
 from maze.utils.utils import collect_gpu_info
+
+logger = logging.getLogger(__name__)
 
 class Worker():
     @staticmethod
@@ -60,4 +62,21 @@ class Worker():
             print("===Success to start worker===")
         except Exception as e:
             logger.error(f"Failed to start worker: {e}")
-        
+    
+    @staticmethod
+    def stop_worker():
+        try:
+            command = [
+                "ray", "stop",
+            ]
+            result = subprocess.run(
+                command,
+                check=True,                  
+                text=True,                 
+                capture_output=True,      
+            )
+            if result.returncode != 0:
+                raise RuntimeError(f"Failed to start Ray: {result.stderr}")
+            print("===Success to stop worker===")
+        except Exception as e:
+            logger.error(f"Exception: {e}")

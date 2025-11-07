@@ -120,21 +120,7 @@ def start_worker(addr: str):
     Worker.start_worker(addr)
 
 def stop_worker():
-    try:
-        command = [
-            "ray", "stop",
-        ]
-        result = subprocess.run(
-            command,
-            check=True,                  
-            text=True,                 
-            capture_output=True,      
-        )
-        if result.returncode != 0:
-            raise RuntimeError(f"Failed to start Ray: {result.stderr}")
-
-    except Exception as e:
-        logger.error(f"Exception: {e}")
+    Worker.stop_worker()
 
 def main():
     parser = argparse.ArgumentParser(prog="maze", description="Maze distributed task runner")
