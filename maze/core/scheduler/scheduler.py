@@ -1,3 +1,7 @@
+from logging import Logger
+
+
+import logging
 import ray
 import time
 import zmq
@@ -16,6 +20,9 @@ from typing import Any,List,Dict
 from maze.core.scheduler.resource import ResourceManager
 from maze.core.scheduler.runtime import WorkflowRuntimeManager,TaskRuntime,LanggraphTaskRuntime
 from maze.core.workflow.task import TaskType
+
+logger = logging.getLogger(__name__)
+
 
 def scheduler_process(port1:int,port2:int,strategy:str,ray_head_port:int,ready_queue:mp.Queue):
     if strategy == "Default":
@@ -52,7 +59,7 @@ class Scheduler():
         os._exit(1)
     
     def _receive_thread(self,port1:int):
-   
+        logger.info(f"Receive start")
         assert(self.context is not None)
         socket_from_main = self.context.socket(zmq.ROUTER)
         socket_from_main.bind(f"tcp://127.0.0.1:{port1}")
@@ -109,6 +116,7 @@ class Scheduler():
             self._cleanup()
      
     def _submit_thread(self,port2:int):
+        logger.info(f"Submit start")
         socket_to_main = self.context.socket(zmq.DEALER)
         socket_to_main.connect(f"tcp://127.0.0.1:{port2}")
          
@@ -145,6 +153,7 @@ class Scheduler():
                 time.sleep(1)
 
     def _supervisor_thread(self, port2:int):
+        logger.info(f"Supervisor start")
         socket_to_main = self.context.socket(zmq.DEALER)
         socket_to_main.connect(f"tcp://127.0.0.1:{port2}")
 
@@ -152,7 +161,7 @@ class Scheduler():
             with self.lock:
                 self.resource_manager.check_dead_node()
 
-                #self.resource_manager.show_all_node_resource()
+                self.resource_manager.show_all_node_resource()
                
 
                 running_task_refs:List = self.workflow_manager.get_running_task_refs()
@@ -235,19 +244,15 @@ class Scheduler():
     def start(self): 
         self.context = zmq.Context() #zmq context
 
-        #启动ray head和资源管理器
         self._launch_ray_head()
         self.resource_manager.init()
         
-        #创建receive线程，用于接收主进程消息
         self.receive_thread = threading.Thread(target=self._receive_thread,args=(self.port1,)) 
         self.receive_thread.start()
 
-        #创建monitor线程，用于监控任务完成情况
         self.monitor_thread = threading.Thread(target=self._supervisor_thread,args=(self.port2,)) 
         self.monitor_thread.start()
         
-        #创建submit线程，用于提交任务
         self.submit_thread = threading.Thread(target=self._submit_thread,args=(self.port2,)) 
         self.submit_thread.start()
 

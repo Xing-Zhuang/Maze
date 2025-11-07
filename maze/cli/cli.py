@@ -4,10 +4,14 @@ import sys
 import uvicorn
 import os
 import time
+import logging
 import signal
 from pathlib import Path
 from maze.core.worker.worker import Worker
 import asyncio
+from maze.config.logging_config import setup_logging
+
+logger = logging.getLogger(__name__)
 
 async def _async_start_head(port: int, ray_head_port: int, playground: bool = False):
     from maze.core.server import app,mapath
@@ -115,7 +119,7 @@ def start_head(port: int, ray_head_port: int, playground: bool = False):
 def start_worker(addr: str):
     Worker.start_worker(addr)
 
-def stop():
+def stop_worker():
     try:
         command = [
             "ray", "stop",
@@ -130,8 +134,7 @@ def stop():
             raise RuntimeError(f"Failed to start Ray: {result.stderr}")
 
     except Exception as e:
-        print(f"Exception: {e}")
-
+        logger.error(f"Exception: {e}")
 
 def main():
     parser = argparse.ArgumentParser(prog="maze", description="Maze distributed task runner")
@@ -147,13 +150,17 @@ def main():
     start_parser.add_argument("--ray-head-port", type=int, metavar="RAY HEAD PORT", help="Port for ray head (required if --head)",default=6379)
     start_parser.add_argument("--addr", metavar="ADDR", help="Address of head node (required if --worker)")
     start_parser.add_argument("--playground", action="store_true", help="Start Maze Playground visual interface (only applicable to --head)")
+    start_parser.add_argument("--log-level", metavar="LOG LEVEL", help="Set log level",default="INFO",choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
+    start_parser.add_argument("--log-file", metavar="LOG FILE", help="Set log file",default=None)
+    
 
     # === stop subcommand ===
-    stop_parser = subparsers.add_parser("stop", help="Stop Maze processes")
+    stop_parser = subparsers.add_parser("stop", help="Stop Maze worker")
 
     # Parse args
     args = parser.parse_args()
-
+    
+    setup_logging(args.log_level, args.log_file)
     if args.command == "start":
         if args.head:
             if args.port is None:
@@ -173,7 +180,7 @@ def main():
                 print("⚠️  Warning: --playground parameter is only applicable to head node, will be ignored")
             start_worker(args.addr)
     elif args.command == "stop":
-        stop()
+        stop_worker()
     else:
         parser.print_help()
         sys.exit(1)

@@ -1,5 +1,6 @@
 from typing import Any,Dict
 import subprocess
+from venv import logger
 import ray
 import requests
 from maze.utils.utils import collect_gpu_info
@@ -56,6 +57,7 @@ class Worker():
                         "gpu_num":1
                     }
             Worker._send_post_request(url=f"http://{addr}/start_worker",data={"node_ip":current_node_ip,"node_id":current_node_id,"resources":resources})
+            print("===Success to start worker===")
         except Exception as e:
-            print(f"Failed to start worker: {e}")
+            logger.error(f"Failed to start worker: {e}")
         

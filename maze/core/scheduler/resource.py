@@ -1,10 +1,13 @@
 import ray
 import time
+import logging
 from typing import Any,List,Dict
 from maze.core.scheduler.runtime import SelectedNode
 from maze.core.scheduler.runtime import TaskRuntime
 from maze.core.scheduler.runtime import SelectedNode
 from maze.utils.utils import collect_gpu_info
+
+logger = logging.getLogger(__name__)
 
 class Node():
     def __init__(self,node_id:str,node_ip:str,available_resources:dict,total_resources:dict):
@@ -76,14 +79,14 @@ class ResourceManager():
         self.head_node_ip = ray.util.get_node_ip_address()
         head_node_resource = self._get_head_node_resource()
 
-      
+        #Wait for ray head launch
         while True:
             for node in ray.nodes():
                 if node["NodeID"] == self.head_node_id and node["Alive"]:     
                     self.nodes[self.head_node_id] = Node(self.head_node_id,self.head_node_ip,head_node_resource,head_node_resource)
-                    return 
+                    return
                     
-    def check_dead_node(self):
+    def check_dead_node(self): 
         nodes = ray.nodes()
         for node in nodes:
             if node["NodeID"] in self.nodes and not node["Alive"]:
@@ -96,10 +99,13 @@ class ResourceManager():
         cur_time = time.time()
         if cur_time - self.last_time >= self.interval:
             self.last_time = cur_time
-
+            
+            logger.debug("===Show All Node===")
+            logger.debug("Total Node: %s", len(self.nodes))
             for node_id,node in self.nodes.items():
-                print(node_id,node.available_resources)
-
+                logger.debug("node_id:%s, available_resources:%s", node_id, node.available_resources)
+            
+            
     def stop_worker(self,node_id:str):
         '''
         Stop worker node
@@ -157,4 +163,5 @@ class ResourceManager():
         '''
         Start worker node
         ''' 
+        logger.info("New worker node join: node_id:%s,node_ip:%s", node_id,node_ip)
         self.nodes[node_id] = Node(node_id,node_ip,resources,resources)
