@@ -31,7 +31,7 @@ class Worker():
                 text=True,                  
                 capture_output=True,        
             )
-        
+              
             current_node_id = ray.get_runtime_context().get_node_id()
             current_node_ip = None
             cur_node = None
@@ -67,7 +67,8 @@ class Worker():
             Worker._send_post_request(url=f"http://{addr}/start_worker",data={"node_ip":current_node_ip,"node_id":current_node_id,"resources":resources})
             print("===Success to start worker===")
         except Exception as e:
-            logger.error(f"Failed to start worker: {e}")
+            print(e.stdout)
+            print(e.stderr)
     
     @staticmethod
     def stop_worker():
@@ -85,4 +86,6 @@ class Worker():
                 raise RuntimeError(f"Failed to start Ray: {result.stderr}")
             print("===Success to stop worker===")
         except Exception as e:
-            logger.error(f"Exception: {e}")
+            print(e.stdout)
+            print(e.stderr)
+    
