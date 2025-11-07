@@ -142,6 +142,8 @@ def main():
 
     # === stop subcommand ===
     stop_parser = subparsers.add_parser("stop", help="Stop Maze worker")
+    stop_parser.add_argument("--log-level", metavar="LOG LEVEL", help="Set log level",default="INFO",choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
+    stop_parser.add_argument("--log-file", metavar="LOG FILE", help="Set log file",default=None)
 
     # Parse args
     args = parser.parse_args()
