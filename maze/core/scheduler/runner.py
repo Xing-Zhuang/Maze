@@ -19,7 +19,7 @@ def remote_task_runner(code_str:str=None, code_ser:str=None, task_input_data:dic
         output = runner.run()
         return output
     else:
-        raise ValueError("必须提供 code_str 或 code_ser")
+        raise ValueError("Missing code_str or code_ser")
 
 @ray.remote(max_retries=0)
 def remote_lgraph_task_runner(code_ser:str,args:str,kwargs:str,cuda_visible_devices:str|None=None):

@@ -35,14 +35,20 @@ class Worker():
             current_node_id = ray.get_runtime_context().get_node_id()
             current_node_ip = None
             cur_node = None
-            nodes = ray.nodes()
-            for node in nodes:
-                if node['NodeID'] == current_node_id:
-                    cur_node = node
-                    current_node_ip = node['NodeManagerAddress']
-                    break
-            assert(cur_node is not None)
 
+            flag = False
+            while True:
+                nodes = ray.nodes()
+                for node in nodes:
+                    if node['NodeID'] == current_node_id and node['Alive']:
+                        cur_node = node
+                        current_node_ip = node['NodeManagerAddress']
+                        flag = True
+                        break
+                if flag:
+                    break
+                
+            assert(cur_node is not None)
             resources = {
                 "cpu":cur_node["Resources"]["CPU"],
                 "cpu_mem":cur_node["Resources"]["memory"],   
