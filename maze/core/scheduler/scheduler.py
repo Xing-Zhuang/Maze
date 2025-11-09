@@ -98,9 +98,9 @@ class Scheduler():
                         self.workflow_manager.clear_workflow(workflow_id=message_data["workflow_id"])
                 elif(message_type =="stop_workflow" ):
                     with self.lock:
-                        cancled_tasks = self.workflow_manager.cancel_workflow(workflow_id=message_data["workflow_id"])
-                        if cancled_tasks:
-                            self.resource_manager.release_resource(tasks=cancled_tasks)
+                        canceld_tasks = self.workflow_manager.cancel_workflow(workflow_id=message_data["workflow_id"])
+                        if len(canceld_tasks) > 0:
+                            self.resource_manager.release_resource(tasks=canceld_tasks)
                             self.workflow_manager.clear_workflow(workflow_id=message_data["workflow_id"]) 
                 elif(message_type=="start_worker"):
                     with self.lock:
@@ -218,7 +218,6 @@ class Scheduler():
                         socket_to_main.send(serialized_message)
                     except ray.exceptions.TaskCancelledError as e:
                         logger.info(f"Task {finished_task.task_id} failed with exception: {e}")
-                        pass
                     except (ray.exceptions.NodeDiedError, ray.exceptions.ObjectLostError, ray.exceptions.TaskUnschedulableError) as e:
                         #The node of task running is dead,send the task back to the queue to retry.
                         logger.info(f"Task {finished_task.task_id} failed with exception: {e}")                        
