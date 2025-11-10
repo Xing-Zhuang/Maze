@@ -21,12 +21,59 @@ class TaskMetadata:
     outputs: List[str]
     resources: Dict[str, Any]
     data_types: Dict[str, str]  # Parameter data types
-    node_type: str  # Node type: 'task' or 'tool'
+    node_type: str  # Node type
+
+
+def _normalize_resources(resources: Dict[str, Any] = None) -> Dict[str, Any]:
+    """
+    Normalize and validate resource configuration
+    
+    Rules:
+    1. Default: cpu=1, cpu_mem=0, gpu=0, gpu_mem=0
+    2. Fill missing fields with defaults
+    3. If cpu is specified, ensure it's at least 1
+    4. If gpu_mem is specified, ensure gpu is at least 1
+    
+    Args:
+        resources: User-provided resource configuration
+        
+    Returns:
+        Dict: Normalized resource configuration
+    """
+    # Default resource configuration
+    default_resources = {
+        "cpu": 1,
+        "cpu_mem": 0,
+        "gpu": 0,
+        "gpu_mem": 0
+    }
+    
+    # If no resources provided, return defaults
+    if resources is None:
+        return default_resources.copy()
+    
+    # Start with defaults
+    normalized = default_resources.copy()
+    
+    # Update with user-provided values
+    for key in ["cpu", "cpu_mem", "gpu", "gpu_mem"]:
+        if key in resources:
+            normalized[key] = resources[key]
+    
+    # Ensure cpu is at least 1 if specified
+    if normalized["cpu"] < 1:
+        normalized["cpu"] = 1
+    
+    # If gpu_mem is specified and > 0, ensure gpu is at least 1
+    if normalized["gpu_mem"] > 0 and normalized["gpu"] < 1:
+        normalized["gpu"] = 1
+    
+    return normalized
 
 
 def task(inputs: List[str], 
          outputs: List[str],
-         resources: Dict[str, Any],
+         resources: Dict[str, Any] = None,
          data_types: Dict[str, str] = None):
     """
     Task decorator - for resource-intensive tasks (LLM calls, image processing, model inference, etc.)
@@ -34,7 +81,7 @@ def task(inputs: List[str],
     Args:
         inputs: List of input parameter names
         outputs: List of output parameter names
-        resources: Resource requirements configuration (required), e.g. {"cpu": 2, "cpu_mem": 2048, "gpu": 1, "gpu_mem": 4096}
+        resources: Resource requirements configuration, defaults to {"cpu": 1, "cpu_mem": 0, "gpu": 0, "gpu_mem": 0}
         data_types: Parameter data type mapping, defaults to "str" for all
         
     Example:
@@ -69,6 +116,9 @@ def task(inputs: List[str],
         # Serialize entire function using cloudpickle (including external imports and dependencies)
         code_ser = base64.b64encode(cloudpickle.dumps(func)).decode('utf-8')
         
+        # Normalize and validate resource configuration
+        resources_config = _normalize_resources(resources)
+        
         # Default data types are all str
         if data_types is None:
             types_config = {param: "str" for param in inputs + outputs}
@@ -84,7 +134,7 @@ def task(inputs: List[str],
             code_ser=code_ser,
             inputs=inputs,
             outputs=outputs,
-            resources=resources,
+            resources=resources_config,
             data_types=types_config,
             node_type="task"  # Mark as task type
         )

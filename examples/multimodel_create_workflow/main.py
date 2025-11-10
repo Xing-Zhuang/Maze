@@ -538,10 +538,10 @@ def main():
     print("=" * 70)
     print()
     
-    workflow.run()
+    run_id = workflow.run()
     
     # 7. Get results with automatic progress display
-    result = workflow.show_results(output_dir=OUTPUT_DIR)
+    result = workflow.show_results(run_id, output_dir=OUTPUT_DIR)
     
     print()
     print("📁 All files saved to:", OUTPUT_DIR)

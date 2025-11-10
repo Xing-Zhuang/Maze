@@ -40,34 +40,14 @@ class TestSimpleWorkflow:
         # 添加任务依赖关系
         workflow.add_edge(task1, task2)
         
-        # 运行工作流
-        workflow.run()
+        # 运行工作流并获取run_id
+        run_id = workflow.run()
+        print(f"Workflow started with run_id: {run_id}")
         
-        # 收集执行结果
-        task_results = {}
-        workflow_completed = False
-        
-        for message in workflow.get_results():
-            msg_type = message.get("type")
-            msg_data = message.get("data", {})
-            
-            if msg_type == "start_task":
-                task_id = msg_data.get('task_id')
-                print(f"▶ 任务开始: {task_id}")
-                
-            elif msg_type == "finish_task":
-                task_id = msg_data.get('task_id')
-                result = msg_data.get('result')
-                task_results[task_id] = result
-                print(f"✓ 任务完成: {task_id}")
-                print(f"  结果: {result}\n")
-                
-            elif msg_type == "finish_workflow":
-                workflow_completed = True
-                print("=" * 60)
-                print("🎉 工作流执行完成!")
-                print("=" * 60)
-                break
+        # 获取并显示执行结果（格式化输出）
+        results = workflow.show_results(run_id)
+        task_results = results["task_results"]
+        workflow_completed = results["workflow_completed"]
         
         # 断言：工作流应该完成
         assert workflow_completed, "工作流未完成"
@@ -99,22 +79,13 @@ class TestSimpleWorkflow:
         # 添加依赖关系
         workflow.add_edge(task1, task2)
         
-        # 运行工作流
-        workflow.run()
+        # 运行工作流并获取run_id
+        run_id = workflow.run()
+        print(f"Workflow started with run_id: {run_id}")
         
-        # 收集结果
-        task_results = {}
-        for message in workflow.get_results():
-            msg_type = message.get("type")
-            msg_data = message.get("data", {})
-            
-            if msg_type == "finish_task":
-                task_id = msg_data.get('task_id')
-                result = msg_data.get('result')
-                task_results[task_id] = result
-                
-            elif msg_type == "finish_workflow":
-                break
+        # 获取并显示执行结果
+        results = workflow.show_results(run_id)
+        task_results = results["task_results"]
         
         # 断言：两个任务都应该有结果
         assert len(task_results) == 2

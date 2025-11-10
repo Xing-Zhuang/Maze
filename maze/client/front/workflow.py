@@ -330,11 +330,14 @@ class MaWorkflow:
         else:
             raise Exception(f"Request failed, status code: {response.status_code}, response: {response.text}")
     
-    def run(self) -> None:
+    def run(self) -> str:
         """
         Run workflow
         
-        Note: This method only submits the workflow execution request, need to call get_results() to get execution results
+        Note: This method submits the workflow execution request and returns run_id
+        
+        Returns:
+            str: Run ID for this execution
         
         Raises:
             Exception: If execution fails
@@ -348,31 +351,37 @@ class MaWorkflow:
         
         if response.status_code == 200:
             result = response.json()
-            if result.get("status") != "success":
+            if result.get("status") == "success":
+                return result.get("run_id")
+            else:
                 raise Exception(f"Failed to run workflow: {result.get('message', 'Unknown error')}")
         else:
             raise Exception(f"Request failed, status code: {response.status_code}, response: {response.text}")
     
-    def get_results(self, verbose: bool = True, output_dir: str = "workflow_results") -> Dict[str, Any]:
+    def get_results(self, run_id: str, verbose: bool = False, output_dir: str = "workflow_results") -> Dict[str, Any]:
         """
-        Run workflow and get final results
+        Get workflow execution results and download files
+        
+        Note: This method is primarily for the front client (file download support).
+        For maze client, use show_results() for formatted display.
         
         Args:
-            verbose: Whether to print execution progress (default True)
+            run_id: Run ID returned by run() method
+            verbose: Whether to print execution progress (default False)
             output_dir: File download directory (default workflow_results)
             
         Returns:
             Dict: Output result of the last task (file paths replaced with local paths)
             
         Example:
-            workflow.run()
-            result = workflow.get_results()
+            run_id = workflow.run()
+            result = workflow.get_results(run_id)
             # result = {"output_image": "workflow_results/xxx/image.jpg", "metadata": {...}}
         """
         self._execution_results = {}
         self._downloaded_files = {}  # Server path -> local path mapping
         ws_url = self.server_url.replace('http://', 'ws://').replace('https://', 'wss://')
-        url = f"{ws_url}/get_workflow_res/{self.workflow_id}"
+        url = f"{ws_url}/get_workflow_res/{self.workflow_id}/{run_id}"
         
         messages = []
         exception_occurred = False
@@ -521,25 +530,26 @@ class MaWorkflow:
         
         return last_task_result if last_task_result else {}
     
-    def show_results(self, output_dir: str = "workflow_results") -> Dict[str, Any]:
+    def show_results(self, run_id: str, output_dir: str = "workflow_results") -> Dict[str, Any]:
         """
-        Simple interface to run workflow and display results with automatic progress printing
+        Simple interface to display workflow results with automatic progress printing
         
         This is a high-level wrapper around get_results() that automatically prints
         execution progress and returns the final result. Perfect for quick testing and demos.
         
         Args:
+            run_id: Run ID returned by run() method
             output_dir: File download directory (default workflow_results)
         
         Returns:
             Dict: Output result of the last task (file paths replaced with local paths)
         
         Example:
-            workflow.run()
-            result = workflow.show_results()
+            run_id = workflow.run()
+            result = workflow.show_results(run_id)
             print(f"Final output: {result}")
         """
-        return self.get_results(verbose=True, output_dir=output_dir)
+        return self.get_results(run_id, verbose=True, output_dir=output_dir)
     
     def _download_file(self, server_path: str, local_path: str = None) -> str:
         """

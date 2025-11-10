@@ -22,6 +22,53 @@ class TaskMetadata:
     data_types: Dict[str, str]  # Parameter data types
 
 
+def _normalize_resources(resources: Dict[str, Any] = None) -> Dict[str, Any]:
+    """
+    Normalize and validate resource configuration
+    
+    Rules:
+    1. Default: cpu=1, cpu_mem=0, gpu=0, gpu_mem=0
+    2. Fill missing fields with defaults
+    3. If cpu is specified, ensure it's at least 1
+    4. If gpu_mem is specified, ensure gpu is at least 1
+    
+    Args:
+        resources: User-provided resource configuration
+        
+    Returns:
+        Dict: Normalized resource configuration
+    """
+    # Default resource configuration
+    default_resources = {
+        "cpu": 1,
+        "cpu_mem": 0,
+        "gpu": 0,
+        "gpu_mem": 0
+    }
+    
+    # If no resources provided, return defaults
+    if resources is None:
+        return default_resources.copy()
+    
+    # Start with defaults
+    normalized = default_resources.copy()
+    
+    # Update with user-provided values
+    for key in ["cpu", "cpu_mem", "gpu", "gpu_mem"]:
+        if key in resources:
+            normalized[key] = resources[key]
+    
+    # Ensure cpu is at least 1 if specified
+    if normalized["cpu"] < 1:
+        normalized["cpu"] = 1
+    
+    # If gpu_mem is specified and > 0, ensure gpu is at least 1
+    if normalized["gpu_mem"] > 0 and normalized["gpu"] < 1:
+        normalized["gpu"] = 1
+    
+    return normalized
+
+
 def task(inputs: List[str], 
          outputs: List[str],
          resources: Dict[str, Any] = None,
@@ -63,11 +110,8 @@ def task(inputs: List[str],
         # Serialize entire function using cloudpickle (including external imports and dependencies)
         code_ser = base64.b64encode(cloudpickle.dumps(func)).decode('utf-8')
         
-        # Default resource configuration
-        if resources is None:
-            resources_config = {"cpu": 1, "cpu_mem": 0, "gpu": 0, "gpu_mem": 0}
-        else:
-            resources_config = resources
+        # Normalize and validate resource configuration
+        resources_config = _normalize_resources(resources)
         
         # Default data types are all str
         if data_types is None:
