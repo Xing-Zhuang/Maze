@@ -2,10 +2,7 @@
 
 <p align="center">
 <a href="https://maze-doc-new.readthedocs.io/en/latest/">
-      Documentation
-</a>
-  
-[**Documentation**](https://maze-doc-new.readthedocs.io/en/latest/)
+      Documentation</a>
 </p>
 
 ## 🌟Why  Maze？
