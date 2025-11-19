@@ -1,4 +1,4 @@
-# <img src="./assets/imgs/image.png" style="height:1em; width:auto; vertical-align:middle"/> Maze:A Task-Level Distributed Agent Workflow Framework
+## <img src="./assets/imgs/image.png" style="height:1em; width:auto; vertical-align:middle"/> Maze:A Task-Level Distributed Agent Workflow Framework
 
 [**Documentation**](https://maze-doc-new.readthedocs.io/en/latest/)
 
@@ -6,7 +6,7 @@
 
 
 
-# 🌟Why  Maze？
+## 🌟Why  Maze？
 - **Task-level**
 
   Maze enables fine-grained, task-level management, enhancing system flexibility and composability while supporting task parallelism to significantly improve the end-to-end performance of agent workflows.
@@ -26,7 +26,7 @@
 <br>
 
 
-# 🚀Quick Start
+## 🚀Quick Start
 
 ## 1. Install
 
@@ -86,7 +86,7 @@ workflow.show_results()
 
 
 
-# 🖥️ Maze Playground
+## 🖥️ Maze Playground
 We support building workflows through a drag-and-drop interface on the Maze Playground.Here are two pages for reference. For detailed usage instructions, please refer to the [**Maze Playground**](https://maze-doc-new.readthedocs.io/en/latest/playground.html).
 
 
