@@ -47,12 +47,12 @@
    pip install -e .
    ```
 ## 2. Launch Maze
-   Launch Maze Head.
+   Launch Maze Head as maze server. The maze server can receive the workflow of the agent.
 
    ```
    maze start --head --port HEAD_PORT
    ```
-   If there are multiple machines, you can start multiple Maze workers.
+   If there are multiple machines, you can connect other machines as maze workers to the maze head.
    ```
    maze start --worker --addr HEAD_IP:HEAD_PORT
    ```
