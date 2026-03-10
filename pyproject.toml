@@ -45,7 +45,7 @@ dependencies = [
     "fastapi>=0.119.1",
     "ray==2.50.1",
     "uvicorn[standard]",
-    "zmq==0.0.0",
+    "pyzmq>=25.0.0",
     "networkx==3.4.2",
     "websocket-client==1.9.0",
     "cloudpickle==3.1.1",

@@ -386,7 +386,7 @@ class MaWorkflow:
                     error_code = int.from_bytes(error.data, 'big')
                     if error_code == 1000:
                         return  # Normal closure
-                except:
+                except (TypeError, ValueError):
                     pass
             exception_occurred = True
             if verbose:

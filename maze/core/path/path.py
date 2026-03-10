@@ -235,6 +235,14 @@ class MaPath:
             except Exception as e:
                 print(f"Error in monitor: {e}")
       
+    def _cleanup_submit_workflow(self, submit_id: str):
+        """Clean up submit_workflows and async_que to prevent memory leak."""
+        async with self.lock:
+            if submit_id in self.async_que:
+                del self.async_que[submit_id]
+            if submit_id in self.submit_workflows:
+                del self.submit_workflows[submit_id]
+
     async def get_workflow_res(self,workflow_id:str,submit_id:str,websocket:WebSocket):    
         """
         Get the workflow result and send to websocket.
@@ -246,30 +254,44 @@ class MaPath:
         assert que != None
 
         count = 0
-        while True:
-            data = await que.get()
-            await websocket.send_json(data)
+        try:
+            while True:
+                data = await que.get()
+                await websocket.send_json(data)
 
-            if data["type"]=="finish_task":
-                count += 1
-                if(count == total_task_num):
-                    finish_message = {"type":"finish_workflow","data":{"run_id":submit_id}}
+                if data["type"]=="finish_task":
+                    count += 1
+                    if(count == total_task_num):
+                        finish_message = {"type":"finish_workflow","data":{"run_id":submit_id}}
+                        await websocket.send_json(finish_message)
+                        
+                        message = {"type":"clear_workflow","data":{"workflow_id":submit_id}}
+                        serialized: bytes = json.dumps(message).encode('utf-8')
+                        self.socket_to_scheduler.send(serialized)
+                         
+                        break
+                elif data["type"]=="task_exception":
+                    # Send finish_workflow so client knows workflow ended, then cleanup and raise
+                    finish_message = {"type":"finish_workflow","data":{"run_id":submit_id, "has_exception": True}}
                     await websocket.send_json(finish_message)
                     
                     message = {"type":"clear_workflow","data":{"workflow_id":submit_id}}
                     serialized: bytes = json.dumps(message).encode('utf-8')
                     self.socket_to_scheduler.send(serialized)
-                     
-                    break
-            elif data["type"]=="task_exception":
-                raise Exception("task_exception")
+                    
+                    raise Exception("task_exception")
+        finally:
+            self._cleanup_submit_workflow(submit_id)
           
     async def stop_workflow(self,submit_id:str):
         '''
         Stop workflow
         '''
         async with self.lock:
-            del self.async_que[submit_id]
+            if submit_id in self.async_que:
+                del self.async_que[submit_id]
+            if submit_id in self.submit_workflows:
+                del self.submit_workflows[submit_id]
 
         message = {"type":"stop_workflow","data":{"workflow_id":submit_id}}
         serialized: bytes = json.dumps(message).encode('utf-8')

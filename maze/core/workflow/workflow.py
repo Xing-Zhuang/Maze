@@ -9,7 +9,8 @@ import time
 class LangGraphWorkflow:
     def __init__(self, id: str):
         self.id: str = id
-        self.tasks: Dict[str, LangGraphTask] = {} 
+        self.tasks: Dict[str, LangGraphTask] = {}
+        self.graph: DiGraph[Any] = nx.DiGraph()
 
     def add_task(self, task_id: str, task: LangGraphTask) -> None:
         """
@@ -26,6 +27,8 @@ class LangGraphWorkflow:
         """
         if task_id in self.tasks:
             del self.tasks[task_id]
+        if task_id in self.graph:
+            self.graph.remove_node(task_id)
         
     def get_task(self, task_id: str) -> LangGraphTask:
         """
